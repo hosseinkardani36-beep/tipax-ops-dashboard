@@ -1,0 +1,117 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>داشبورد عملیات تیپاکس</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f3f5f9;color:#172033;font-family:Tahoma,Arial,sans-serif}
+header{background:#172b4d;color:white;padding:22px 16px}
+header h1{margin:0 0 8px;font-size:23px}
+header p{margin:0;color:#d7e2f4;font-size:13px}
+main{max-width:1100px;margin:auto;padding:18px}
+h2{font-size:18px}
+.filters,.cards,.grid{display:grid;gap:12px}
+.filters{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:18px}
+.cards{grid-template-columns:repeat(auto-fit,minmax(145px,1fr))}
+.grid{grid-template-columns:repeat(auto-fit,minmax(280px,1fr));margin-top:14px}
+.panel,.metric{background:white;border:1px solid #e4e8f0;border-radius:12px;padding:16px}
+.metric small{color:#667085}
+.metric strong{display:block;font-size:23px;margin-top:10px}
+input,select,button{font:inherit;padding:11px;border-radius:8px;border:1px solid #d4dae5;background:white;width:100%}
+button{background:#1d4ed8;color:white;border:0;cursor:pointer}
+.note{font-size:12px;color:#667085;line-height:2}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+th,td{text-align:right;padding:11px 7px;border-bottom:1px solid #edf0f5}
+th{background:#f7f8fb}
+.status{color:#b45309}
+.bar{height:12px;background:#e8edf5;border-radius:8px;overflow:hidden;margin:10px 0}
+.bar span{display:block;height:100%;background:#2563eb}
+footer{text-align:center;padding:20px;color:#667085;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+<h1>داشبورد عملیات تیپاکس</h1>
+<p>گزارش مدیریتی نمایندگی‌های خوزستان و لرستان</p>
+</header>
+<main>
+<div class="filters">
+<select id="province" onchange="render()">
+<option value="all">همه استان‌ها</option>
+<option value="خوزستان">خوزستان</option>
+<option value="لرستان">لرستان</option>
+</select>
+<input id="search" placeholder="جستجوی نام نمایندگی..." oninput="render()">
+<input id="file" type="file" accept=".csv,.txt" onchange="loadFile(event)">
+</div>
+<p class="note">نسخه اولیه: اطلاعات زیر نمونه هستند و آمار واقعی شرکت نیستند. برای نمایش دقیق، فایل CSV با ستون‌های مناسب وارد کنید.</p>
+<div class="cards">
+<div class="metric"><small>تعداد نمایندگی‌ها</small><strong id="count">۰</strong></div>
+<div class="metric"><small>کل بدهی (ریال)</small><strong id="debt">۰</strong></div>
+<div class="metric"><small>کل رسوب مرسولات</small><strong id="residue">۰</strong></div>
+<div class="metric"><small>کل شکایت‌ها</small><strong id="complaints">۰</strong></div>
+</div>
+<div class="grid">
+<section class="panel">
+<h2>خلاصه عملکرد</h2>
+<div id="summary"></div>
+</section>
+<section class="panel">
+<h2>راهنمای ورود اطلاعات</h2>
+<p class="note">برای نسخه اولیه، فایل CSV با ستون‌های استان، نمایندگی، بدهی، رسوب و شکایت قابل انتخاب است. فایل اکسل با پسوند XLSX در این نسخه مستقیماً پردازش نمی‌شود.</p>
+<p class="note">نمونه عنوان ستون‌ها:</p>
+<code>استان,نمایندگی,بدهی,رسوب,شکایت</code>
+</section>
+</div>
+<section class="panel" style="margin-top:14px;overflow-x:auto">
+<h2>جدول نمایندگی‌ها</h2>
+<table>
+<thead><tr><th>استان</th><th>نمایندگی</th><th>بدهی (ریال)</th><th>رسوب</th><th>شکایت</th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+</section>
+</main>
+<footer>داشبورد اولیه مدیریتی | تیپاکس خوزستان و لرستان</footer>
+<script>
+let data=[
+{استان:"خوزستان",نمایندگی:"اهواز",بدهی:0,رسوب:0,شکایت:0},
+{استان:"خوزستان",نمایندگی:"آبادان",بدهی:0,رسوب:0,شکایت:0},
+{استان:"لرستان",نمایندگی:"خرم‌آباد",بدهی:0,رسوب:0,شکایت:0}
+];
+const fmt=n=>Number(n||0).toLocaleString("fa-IR");
+function render(){
+const p=document.getElementById("province").value;
+const q=document.getElementById("search").value.trim().toLowerCase();
+const list=data.filter(x=>(p==="all"||x.استان===p)&&x.نمایندگی.toLowerCase().includes(q));
+document.getElementById("count").textContent=fmt(list.length);
+document.getElementById("debt").textContent=fmt(list.reduce((s,x)=>s+(+x.بدهی||0),0));
+document.getElementById("residue").textContent=fmt(list.reduce((s,x)=>s+(+x.رسوب||0),0));
+document.getElementById("complaints").textContent=fmt(list.reduce((s,x)=>s+(+x.شکایت||0),0));
+document.getElementById("rows").innerHTML=list.map(x=>`<tr><td>${x.استان}</td><td>${x.نمایندگی}</td><td>${fmt(x.بدهی)}</td><td>${fmt(x.رسوب)}</td><td>${fmt(x.شکایت)}</td></tr>`).join("");
+document.getElementById("summary").innerHTML=list.length?list.map(x=>`<p>${x.استان} — ${x.نمایندگی}<div class="bar"><span style="width:${Math.min(100,(+x.رسوب||0))}%"></span></div></p>`).join(""):"اطلاعاتی برای نمایش وجود ندارد.";
+}
+function loadFile(e){
+const f=e.target.files[0];if(!f)return;
+const reader=new FileReader();
+reader.onload=ev=>{
+const lines=ev.target.result.replace(/^\uFEFF/,"").trim().split(/\r?\n/);
+const headers=lines.shift().split(",").map(s=>s.trim());
+const required=["استان","نمایندگی","بدهی","رسوب","شکایت"];
+if(!required.every(h=>headers.includes(h))){alert("عنوان ستون‌ها باید این‌ها باشند: استان، نمایندگی، بدهی، رسوب، شکایت");return;}
+data=lines.filter(Boolean).map(line=>{
+const vals=line.split(",");const obj={};
+headers.forEach((h,i)=>obj[h]=vals[i]?.trim()||"");
+["بدهی","رسوب","شکایت"].forEach(k=>obj[k]=Number(String(obj[k]).replace(/[^\d.-]/g,""))||0);
+return obj;
+});
+render();alert("فایل بارگذاری شد.");
+};
+reader.readAsText(f,"UTF-8");
+}
+render();
+</script>
+</body>
+</html>
