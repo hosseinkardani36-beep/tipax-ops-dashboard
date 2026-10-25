@@ -1,174 +1,262 @@
-
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>داشبورد عملیات تیپاکس</title>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#f3f5f9;color:#172033;font-family:Tahoma,Arial,sans-serif}
-header{background:#172b4d;color:white;padding:22px 16px}
-header h1{margin:0 0 8px;font-size:23px}
-header p{margin:0;color:#d7e2f4;font-size:13px;line-height:1.9}
-main{max-width:1150px;margin:auto;padding:16px}
-.panel,.metric{background:white;border:1px solid #e4e8f0;border-radius:12px;padding:15px;margin-bottom:14px}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}
-.metric small{color:#667085}
-.metric strong{display:block;font-size:21px;margin-top:10px;overflow-wrap:anywhere}
-.controls,.mapping{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
-input,select,button{width:100%;padding:11px;border:1px solid #d4dae5;border-radius:8px;background:white;font:inherit}
-button{background:#1d4ed8;color:white;border:0;cursor:pointer}
-h2{font-size:17px;margin-top:0}
-.note{font-size:12px;line-height:2;color:#667085}
-.tablewrap{overflow:auto}
-table{width:100%;border-collapse:collapse;min-width:650px;font-size:13px}
-th,td{text-align:right;padding:11px 8px;border-bottom:1px solid #edf0f5;white-space:nowrap}
-th{background:#f7f8fb}
-#status{font-size:13px;line-height:2;overflow-wrap:anywhere}
-.good{color:#087443}.bad{color:#b42318}
-.hidden{display:none}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>داشبورد عملیات تیپاکس</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: Tahoma, Arial, sans-serif;
+      background: #f3f5f9;
+      color: #202938;
+      margin: 0;
+      padding: 16px;
+    }
+    .container { max-width: 1200px; margin: auto; }
+    h1 { color: #12366b; font-size: 24px; }
+    .panel, .card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px #0000000c;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+    .card strong { display: block; font-size: 25px; margin-top: 10px; }
+    input, button {
+      font: inherit;
+      padding: 11px;
+      margin: 5px 0;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+    }
+    button { background: #174a8b; color: white; cursor: pointer; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; background: white; }
+    th, td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 10px;
+      text-align: right;
+      white-space: nowrap;
+    }
+    th { background: #eaf0f8; }
+    .status { padding: 10px; border-radius: 8px; background: #eef5ff; }
+    .error { background: #fff0f0; color: #a00000; }
+  </style>
 </head>
 <body>
-<header>
-<h1>داشبورد عملیات تیپاکس</h1>
-<p>پنل تحلیل مدیریتی نمایندگی‌های خوزستان و لرستان</p>
-</header>
-<main>
-<section class="panel">
-<h2>۱. بارگذاری اطلاعات</h2>
-<input type="file" id="file" accept=".xlsx,.xls,.csv">
-<p class="note">فایل Excel یا CSV را انتخاب کن. اطلاعات در این نسخه داخل مرورگر پردازش می‌شود و به‌صورت مشترک بین کاربران ذخیره نمی‌شود.</p>
-<div id="status">هنوز فایلی انتخاب نشده است.</div>
-</section>
+<div class="container">
+  <h1>داشبورد عملیات تیپاکس</h1>
+  <p>گزارش رسوب بارهای خوزستان و لرستان</p>
 
-<section class="panel hidden" id="mappingPanel">
-<h2>۲. تطبیق ستون‌ها</h2>
-<p class="note">اگر ستون‌ها خودکار شناسایی نشدند، عنوان درست هر مورد را از فهرست انتخاب کن. ستون‌های نامشخص روی «تشخیص خودکار» باقی بمانند.</p>
-<div class="mapping" id="mapping"></div>
-<button id="apply" style="margin-top:12px">اعمال ستون‌ها و تحلیل اطلاعات</button>
-</section>
+  <section class="panel">
+    <label for="fileInput">فایل اکسل گزارش رسوب را انتخاب کن:</label><br>
+    <input id="fileInput" type="file" accept=".xlsx,.xls,.csv">
+    <button id="loadBtn">بارگذاری و تحلیل</button>
+    <div id="status" class="status">هنوز فایلی بارگذاری نشده است.</div>
+  </section>
 
-<section class="controls">
-<select id="provinceFilter"><option value="">همه استان‌ها</option></select>
-<input id="search" placeholder="جستجوی نمایندگی">
-</section>
+  <section class="cards">
+    <div class="card">کل ردیف‌ها<strong id="total">۰</strong></div>
+    <div class="card">خوزستان<strong id="khuzestan">۰</strong></div>
+    <div class="card">لرستان<strong id="lorestan">۰</strong></div>
+    <div class="card">استان نامشخص<strong id="unknown">۰</strong></div>
+    <div class="card">جمع روزهای رسوب<strong id="days">۰</strong></div>
+  </section>
 
-<section class="cards">
-<div class="metric"><small>تعداد ردیف‌ها</small><strong id="count">۰</strong></div>
-<div class="metric"><small>مجموع بدهی (ریال)</small><strong id="debt">۰</strong></div>
-<div class="metric"><small>مجموع رسوب</small><strong id="residue">۰</strong></div>
-<div class="metric"><small>مجموع شکایت</small><strong id="complaints">۰</strong></div>
-</section>
-
-<section class="panel">
-<h2>خلاصه استانی</h2>
-<div class="tablewrap">
-<table><thead><tr><th>استان</th><th>تعداد ردیف</th><th>بدهی (ریال)</th><th>رسوب</th><th>شکایت</th></tr></thead>
-<tbody id="provinceRows"></tbody></table>
+  <section class="panel">
+    <label for="search">جست‌وجو در نتایج:</label><br>
+    <input id="search" type="search" placeholder="بارکد، شهر، نمایندگی یا استان..." style="width:90%">
+    <div class="table-wrap">
+      <table>
+        <thead><tr id="headers"></tr></thead>
+        <tbody id="results"></tbody>
+      </table>
+    </div>
+    <p id="tableInfo"></p>
+  </section>
 </div>
-</section>
-
-<section class="panel">
-<h2>جدول اطلاعات</h2>
-<div class="tablewrap"><table><thead id="thead"></thead><tbody id="rows"></tbody></table></div>
-</section>
-<p class="note">هشدار: صحت گزارش به ساختار فایل و انتخاب ستون‌ها وابسته است. اعداد نمونه‌ای نمایش داده نمی‌شوند؛ پیش از استفاده مدیریتی، نتایج را با فایل اصلی تطبیق بده.</p>
-</main>
 
 <script>
-let rawRows=[],headers=[],records=[];
-const fields=[
-["province","استان",["استان","province","state"]],
-["branch","نمایندگی",["نمایندگی","نام نمایندگی","شعبه","نام شعبه","rep","branch","agency"]],
-["debt","بدهی",["بدهی","مانده بدهی","مانده حساب","بدهکار","طلب شرکت","balance","debt"]],
-["residue","رسوب",["رسوب","مرسولات رسوبی","تعداد رسوب","مانده مرسولات","residue"]],
-["complaints","شکایت",["شکایت","تعداد شکایت","شکایات","complaint","complaints"]]
-];
-const $=id=>document.getElementById(id);
-function norm(s){return String(s??"").trim().toLowerCase().replace(/\u064a/g,"ی").replace(/\u0643/g,"ک").replace(/[\s_\-‌]+/g,"")}
-function number(v){
- if(typeof v==="number")return v;
- let s=String(v??"").replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d));
- s=s.replace(/[٬،,]/g,"").replace(/[^\d.-]/g,"");
- return Number(s)||0;
-}
-function findHeader(aliases){
- return headers.find(h=>aliases.some(a=>norm(h)===norm(a)))||"";
-}
-function makeMapping(){
- $("mapping").innerHTML=fields.map(([key,label,aliases])=>{
-  let found=findHeader(aliases);
-  return `<label>${label}<select data-field="${key}"><option value="">تشخیص خودکار / نامشخص</option>${headers.map(h=>`<option value="${escapeHtml(h)}" ${h===found?"selected":""}>${escapeHtml(h)}</option>`).join("")}</select></label>`;
- }).join("");
- $("mappingPanel").classList.remove("hidden");
-}
-function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-$("file").addEventListener("change",async e=>{
- const f=e.target.files[0];if(!f)return;
- $("status").textContent="در حال خواندن فایل...";
- try{
-  let wb;
-  if(f.name.toLowerCase().endsWith(".csv")){
-   const text=await f.text();wb=XLSX.read(text,{type:"string"});
-  }else{
-   if(!window.XLSX)throw Error("کتابخانه خواندن Excel بارگذاری نشده؛ اینترنت را بررسی کن.");
-   wb=XLSX.read(await f.arrayBuffer(),{type:"array"});
+(() => {
+  let allRows = [];
+  let columns = [];
+
+  const $ = id => document.getElementById(id);
+
+  function normalize(value) {
+    return String(value ?? "")
+      .replace(/ي/g, "ی")
+      .replace(/ك/g, "ک")
+      .replace(/ۀ/g, "ه")
+      .replace(/ة/g, "ه")
+      .replace(/[\u200c\u200f\u202a-\u202e]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
   }
-  const sheet=wb.Sheets[wb.SheetNames[0]];
-  rawRows=XLSX.utils.sheet_to_json(sheet,{defval:"",raw:false});
-  headers=rawRows.length?Object.keys(rawRows[0]):[];
-  if(!headers.length)throw Error("فایل خالی است یا عنوان ستون‌ها پیدا نشد.");
-  makeMapping();
-  $("status").textContent=`فایل «${f.name}» خوانده شد؛ ${rawRows.length} ردیف و ${headers.length} ستون پیدا شد. بررسی ستون‌ها را انجام بده.`;
-  $("status").className="good";
- }catch(err){
-  $("status").textContent="خطا: "+err.message;
-  $("status").className="bad";
- }
-});
-$("apply").addEventListener("click",()=>{
- const selected={};
- document.querySelectorAll("[data-field]").forEach(s=>selected[s.dataset.field]=s.value);
- records=rawRows.map(row=>{
-  const out={};
-  fields.forEach(([key,label,aliases])=>{
-   const h=selected[key]||findHeader(aliases);
-   out[key]=h?(row[h]??""):"";
+
+  function key(value) {
+    return normalize(value)
+      .replace(/[\s_\-‌]+/g, "")
+      .toLowerCase();
+  }
+
+  function findColumn(names) {
+    const normalized = columns.map(c => ({ original: c, k: key(c) }));
+
+    for (const name of names) {
+      const exact = normalized.find(c => c.k === key(name));
+      if (exact) return exact.original;
+    }
+
+    for (const name of names) {
+      const partial = normalized.find(c => c.k.includes(key(name)));
+      if (partial) return partial.original;
+    }
+    return null;
+  }
+
+  function getProvince(row) {
+    const col = findColumn([
+      "استان رسوب",
+      "استان",
+      "استان ایجاد کننده",
+      "استان فرستنده",
+      "استان گیرنده"
+    ]);
+
+    if (!col) return "نامشخص";
+
+    const value = normalize(row[col]);
+    const k = key(value);
+
+    if (k.includes("خوزستان")) return "خوزستان";
+    if (k.includes("لرستان")) return "لرستان";
+    return value || "نامشخص";
+  }
+
+  function getDays(row) {
+    const col = findColumn(["تعداد روزهای رسوب"]);
+    if (!col) return 0;
+    const value = String(row[col] ?? "").replace(/,/g, "").trim();
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function setStatus(message, error = false) {
+    $("status").textContent = message;
+    $("status").className = error ? "status error" : "status";
+  }
+
+  function render() {
+    const query = normalize($("search").value).toLowerCase();
+    const filtered = allRows.filter(row =>
+      !query || columns.some(col =>
+        normalize(row[col]).toLowerCase().includes(query)
+      )
+    );
+
+    const header = $("headers");
+    header.replaceChildren();
+    columns.forEach(col => {
+      const th = document.createElement("th");
+      th.textContent = col;
+      header.appendChild(th);
+    });
+
+    const body = $("results");
+    body.replaceChildren();
+
+    filtered.slice(0, 1000).forEach(row => {
+      const tr = document.createElement("tr");
+      columns.forEach(col => {
+        const td = document.createElement("td");
+        td.textContent = row[col] == null ? "" : String(row[col]);
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+
+    $("tableInfo").textContent =
+      `نتایج: ${filtered.length.toLocaleString("fa-IR")} ردیف؛ نمایش حداکثر ۱۰۰۰ ردیف اول.`;
+  }
+
+  function analyze(rows) {
+    allRows = rows;
+    columns = rows.length ? Object.keys(rows[0]) : [];
+
+    const provinceColumn = findColumn(["استان رسوب"]);
+    if (!provinceColumn) {
+      setStatus(
+        "ستون «استان رسوب» در فایل پیدا نشد. عنوان ستون‌های فایل را بررسی کن.",
+        true
+      );
+      return;
+    }
+
+    let kh = 0, lo = 0, unknown = 0, days = 0;
+
+    allRows.forEach(row => {
+      const province = getProvince(row);
+      if (province === "خوزستان") kh++;
+      else if (province === "لرستان") lo++;
+      else unknown++;
+      days += getDays(row);
+    });
+
+    $("total").textContent = allRows.length.toLocaleString("fa-IR");
+    $("khuzestan").textContent = kh.toLocaleString("fa-IR");
+    $("lorestan").textContent = lo.toLocaleString("fa-IR");
+    $("unknown").textContent = unknown.toLocaleString("fa-IR");
+    $("days").textContent = days.toLocaleString("fa-IR");
+
+    setStatus(
+      `فایل با موفقیت خوانده شد. ستون استان: «${provinceColumn}». ` +
+      `خوزستان: ${kh}، لرستان: ${lo}، نامشخص: ${unknown}`
+    );
+
+    render();
+  }
+
+  $("loadBtn").addEventListener("click", async () => {
+    const file = $("fileInput").files[0];
+
+    if (!file) {
+      setStatus("ابتدا فایل اکسل را انتخاب کن.", true);
+      return;
+    }
+
+    if (typeof XLSX === "undefined") {
+      setStatus("کتابخانه خواندن اکسل بارگذاری نشده است. اینترنت را بررسی کن.", true);
+      return;
+    }
+
+    try {
+      setStatus("در حال خواندن فایل...");
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array" });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+      if (!rows.length) {
+        setStatus("در شیت اول داده‌ای پیدا نشد.", true);
+        return;
+      }
+
+      analyze(rows);
+    } catch (error) {
+      setStatus("خواندن فایل ناموفق بود. فایل اکسل سالم و قابل باز شدن را انتخاب کن.", true);
+      console.error(error);
+    }
   });
-  out.debt=number(out.debt);out.residue=number(out.residue);out.complaints=number(out.complaints);
-  out.original=row;
-  return out;
- });
- const provinces=[...new Set(records.map(r=>String(r.province).trim()).filter(Boolean))];
- $("provinceFilter").innerHTML='<option value="">همه استان‌ها</option>'+provinces.map(p=>`<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join("");
- $("status").textContent="تحلیل انجام شد. جمع‌ها را با فایل اصلی تطبیق بده.";
- $("status").className="good";
- render();
-});
-$("provinceFilter").addEventListener("change",render);
-$("search").addEventListener("input",render);
-function fmt(n){return Number(n||0).toLocaleString("fa-IR");}
-function render(){
- const p=$("provinceFilter").value,q=norm($("search").value);
- const list=records.filter(r=>(!p||String(r.province).trim()===p)&&(!q||norm(r.branch).includes(q)));
- $("count").textContent=fmt(list.length);
- $("debt").textContent=fmt(list.reduce((s,r)=>s+r.debt,0));
- $("residue").textContent=fmt(list.reduce((s,r)=>s+r.residue,0));
- $("complaints").textContent=fmt(list.reduce((s,r)=>s+r.complaints,0));
- const groups={};
- list.forEach(r=>{
-  const name=String(r.province||"نامشخص").trim()||"نامشخص";
-  if(!groups[name])groups[name]={n:0,debt:0,residue:0,complaints:0};
-  groups[name].n++;groups[name].debt+=r.debt;groups[name].residue+=r.residue;groups[name].complaints+=r.complaints;
- });
- $("provinceRows").innerHTML=Object.entries(groups).map(([name,g])=>`<tr><td>${escapeHtml(name)}</td><td>${fmt(g.n)}</td><td>${fmt(g.debt)}</td><td>${fmt(g.residue)}</td><td>${fmt(g.complaints)}</td></tr>`).join("");
- const extra=headers;
- $("thead").innerHTML="<tr>"+extra.map(h=>`<th>${escapeHtml(h)}</th>`).join("")+"</tr>";
- $("rows").innerHTML=list.slice(0,1000).map(r=>"<tr>"+extra.map(h=>`<td>${escapeHtml(r.original[h])}</td>`).join("")+"</tr>").join("");
-}
+
+  $("search").addEventListener("input", render);
+})();
 </script>
 </body>
 </html>
