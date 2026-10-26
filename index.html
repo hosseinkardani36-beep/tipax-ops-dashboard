@@ -1,262 +1,288 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>داشبورد عملیات تیپاکس</title>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <style>
-    body {
-      font-family: Tahoma, Arial, sans-serif;
-      background: #f3f5f9;
-      color: #202938;
-      margin: 0;
-      padding: 16px;
-    }
-    .container { max-width: 1200px; margin: auto; }
-    h1 { color: #12366b; font-size: 24px; }
-    .panel, .card {
-      background: white;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 8px #0000000c;
-    }
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 12px;
-    }
-    .card strong { display: block; font-size: 25px; margin-top: 10px; }
-    input, button {
-      font: inherit;
-      padding: 11px;
-      margin: 5px 0;
-      border-radius: 8px;
-      border: 1px solid #cbd5e1;
-    }
-    button { background: #174a8b; color: white; cursor: pointer; }
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; background: white; }
-    th, td {
-      border-bottom: 1px solid #e5e7eb;
-      padding: 10px;
-      text-align: right;
-      white-space: nowrap;
-    }
-    th { background: #eaf0f8; }
-    .status { padding: 10px; border-radius: 8px; background: #eef5ff; }
-    .error { background: #fff0f0; color: #a00000; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>داشبورد عملیات تیپاکس | خوزستان و لرستان</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{--navy:#10233f;--blue:#1769aa;--bg:#f2f5fa;--white:#fff;--green:#13805c;--red:#c43d4b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:Tahoma,Arial,sans-serif;color:#233247}
+header{background:linear-gradient(120deg,#10233f,#1769aa);color:white;padding:24px 18px}
+header h1{margin:0 0 9px;font-size:23px}
+header p{margin:0;font-size:13px;line-height:2}
+main{max-width:1450px;margin:auto;padding:16px}
+.panel,.metric{background:white;border-radius:13px;padding:16px;margin-bottom:15px;box-shadow:0 3px 12px #142d4810}
+h2{font-size:17px;margin:0 0 14px;color:var(--navy)}
+h3{font-size:14px;margin:0 0 12px}
+button,.filelabel{border:0;border-radius:8px;padding:11px 15px;font-family:inherit;font-size:13px;cursor:pointer;background:var(--blue);color:white;display:inline-block}
+button.secondary{background:#e5edf7;color:#183d63}
+button.green{background:var(--green)}
+input,select{font-family:inherit;padding:10px;border:1px solid #ccd6e3;border-radius:8px;background:#fff;min-width:0;width:100%;font-size:13px}
+label{display:block;font-size:12px;margin-bottom:6px;color:#526278}
+.upload{border:2px dashed #9cb5d2;border-radius:12px;padding:20px;text-align:center;background:#f8fbff}
+.upload input{max-width:400px;margin:12px auto}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:15px}
+.metric{margin:0;border-top:4px solid var(--blue)}
+.metric small{display:block;color:#63738a;margin-bottom:12px}
+.metric strong{font-size:24px;overflow-wrap:anywhere;color:var(--navy)}
+.metric.green{border-color:var(--green)}
+.metric.red{border-color:var(--red)}
+.metric.orange{border-color:#e49a24}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px}
+.barrow{margin:12px 0}
+.barhead{display:flex;justify-content:space-between;gap:10px;font-size:12px;margin-bottom:5px}
+.bar{height:9px;background:#e9eef5;border-radius:20px;overflow:hidden}
+.bar span{display:block;height:100%;background:linear-gradient(90deg,#1769aa,#40a0df);border-radius:20px}
+.tablewrap{overflow:auto;max-height:600px;border:1px solid #e4eaf1;border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:12px;background:white;white-space:nowrap}
+th,td{padding:10px 12px;border-bottom:1px solid #e7edf4;text-align:right}
+th{background:#eaf1f9;position:sticky;top:0;z-index:1}
+tr:hover td{background:#f6f9fd}
+.note{font-size:12px;line-height:2;color:#617087}
+.status{font-size:13px;line-height:2;margin-top:10px;overflow-wrap:anywhere}
+.error{color:#b52d3b}
+.good{color:#08774e}
+.hidden{display:none}
+footer{text-align:center;padding:20px;color:#728097;font-size:11px}
+@media(max-width:600px){header h1{font-size:19px}main{padding:10px}.metric strong{font-size:21px}.panel{padding:12px}}
+</style>
 </head>
 <body>
-<div class="container">
-  <h1>داشبورد عملیات تیپاکس</h1>
-  <p>گزارش رسوب بارهای خوزستان و لرستان</p>
+<header>
+<h1>داشبورد مدیریتی تحلیل رسوب تیپاکس</h1>
+<p>تحلیل عملیات استان‌های خوزستان و لرستان | بارهای رسوبی، شهرها، نودها و مدت رسوب</p>
+</header>
 
-  <section class="panel">
-    <label for="fileInput">فایل اکسل گزارش رسوب را انتخاب کن:</label><br>
-    <input id="fileInput" type="file" accept=".xlsx,.xls,.csv">
-    <button id="loadBtn">بارگذاری و تحلیل</button>
-    <div id="status" class="status">هنوز فایلی بارگذاری نشده است.</div>
-  </section>
+<main>
+<section class="panel">
+<h2>۱. بارگذاری فایل اکسل</h2>
+<div class="upload">
+<p>فایل اکسل کامل رسوب را انتخاب کن.</p>
+<input id="file" type="file" accept=".xlsx,.xls,.csv">
+<div><button onclick="loadFile()">بارگذاری و تحلیل فایل</button></div>
+<div id="message" class="status">هنوز فایلی انتخاب نشده است.</div>
+</div>
+<p class="note">فایل باید شامل ستون‌هایی مانند «استان رسوب»، «شهر رسوب»، «نود رسوب» و «تعداد روزهای رسوب» باشد. نام ستون‌ها با فاصله یا تفاوت ی/ي و ک/ك نیز تا حد امکان شناسایی می‌شود.</p>
+</section>
 
-  <section class="cards">
-    <div class="card">کل ردیف‌ها<strong id="total">۰</strong></div>
-    <div class="card">خوزستان<strong id="khuzestan">۰</strong></div>
-    <div class="card">لرستان<strong id="lorestan">۰</strong></div>
-    <div class="card">استان نامشخص<strong id="unknown">۰</strong></div>
-    <div class="card">جمع روزهای رسوب<strong id="days">۰</strong></div>
-  </section>
-
-  <section class="panel">
-    <label for="search">جست‌وجو در نتایج:</label><br>
-    <input id="search" type="search" placeholder="بارکد، شهر، نمایندگی یا استان..." style="width:90%">
-    <div class="table-wrap">
-      <table>
-        <thead><tr id="headers"></tr></thead>
-        <tbody id="results"></tbody>
-      </table>
-    </div>
-    <p id="tableInfo"></p>
-  </section>
+<section id="dashboard" class="hidden">
+<div class="metrics">
+<div class="metric"><small>کل ردیف‌های رسوب</small><strong id="mTotal">۰</strong></div>
+<div class="metric"><small>رسوب خوزستان</small><strong id="mKh">۰</strong></div>
+<div class="metric"><small>رسوب لرستان</small><strong id="mLo">۰</strong></div>
+<div class="metric orange"><small>میانگین روزهای رسوب</small><strong id="mAvg">۰</strong></div>
+<div class="metric red"><small>بیشترین روز رسوب</small><strong id="mMax">۰</strong></div>
+<div class="metric green"><small>جمع روزهای رسوب</small><strong id="mSum">۰</strong></div>
 </div>
 
+<section class="panel">
+<h2>۲. فیلترهای تحلیلی</h2>
+<div class="filters">
+<div><label>استان رسوب</label><select id="fProvince"><option value="">همه استان‌ها</option></select></div>
+<div><label>شهر رسوب</label><select id="fCity"><option value="">همه شهرها</option></select></div>
+<div><label>نود رسوب</label><select id="fNode"><option value="">همه نودها</option></select></div>
+<div><label>نوع رسوب</label><select id="fType"><option value="">همه انواع</option></select></div>
+<div><label>وضعیت رسوب</label><select id="fStatus"><option value="">همه وضعیت‌ها</option></select></div>
+<div><label>جست‌وجو در بارکد، شهر و سایر اطلاعات</label><input id="fSearch" placeholder="عبارت موردنظر..."></div>
+<div><label>حداقل روز رسوب</label><input id="fMin" type="number" min="0" placeholder="مثلاً ۳"></div>
+<div><label>حداکثر روز رسوب</label><input id="fMax" type="number" min="0" placeholder="مثلاً ۳۰"></div>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+<button onclick="applyFilters()">اعمال فیلترها</button>
+<button class="secondary" onclick="resetFilters()">حذف فیلترها</button>
+<button class="green" onclick="exportExcel()">خروجی اکسل اطلاعات فیلترشده</button>
+</div>
+<p id="filterInfo" class="note"></p>
+</section>
+
+<div class="two">
+<section class="panel"><h2>۳. سهم هر استان</h2><div id="provinceChart"></div></section>
+<section class="panel"><h2>۴. ده شهر با بیشترین ردیف رسوب</h2><div id="cityChart"></div></section>
+<section class="panel"><h2>۵. ده نود با بیشترین ردیف رسوب</h2><div id="nodeChart"></div></section>
+<section class="panel"><h2>۶. وضعیت نوع رسوب</h2><div id="typeChart"></div></section>
+</div>
+
+<section class="panel">
+<h2>۷. بارهای دارای بیشترین مدت رسوب</h2>
+<p class="note">جدول بر اساس تعداد روزهای رسوب از بیشترین به کمترین مرتب شده است. برای جلوگیری از کندی مرورگر، حداکثر ۱۰۰ ردیف اول نمایش داده می‌شود.</p>
+<div class="tablewrap"><table id="topTable"></table></div>
+</section>
+
+<section class="panel">
+<h2>۸. مشاهده اطلاعات و جست‌وجوی بارها</h2>
+<div class="tablewrap"><table id="dataTable"></table></div>
+<p id="tableInfo" class="note"></p>
+</section>
+</section>
+</main>
+<footer>داشبورد تحلیل عملیات تیپاکس | نسخه مرورگری</footer>
+
 <script>
-(() => {
-  let allRows = [];
-  let columns = [];
+let allRows=[];
+let filteredRows=[];
+let headers=[];
+let provinceKey='',cityKey='',nodeKey='',daysKey='',typeKey='',statusKey='',barcodeKey='';
 
-  const $ = id => document.getElementById(id);
-
-  function normalize(value) {
-    return String(value ?? "")
-      .replace(/ي/g, "ی")
-      .replace(/ك/g, "ک")
-      .replace(/ۀ/g, "ه")
-      .replace(/ة/g, "ه")
-      .replace(/[\u200c\u200f\u202a-\u202e]/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  function key(value) {
-    return normalize(value)
-      .replace(/[\s_\-‌]+/g, "")
-      .toLowerCase();
-  }
-
-  function findColumn(names) {
-    const normalized = columns.map(c => ({ original: c, k: key(c) }));
-
-    for (const name of names) {
-      const exact = normalized.find(c => c.k === key(name));
-      if (exact) return exact.original;
-    }
-
-    for (const name of names) {
-      const partial = normalized.find(c => c.k.includes(key(name)));
-      if (partial) return partial.original;
-    }
-    return null;
-  }
-
-  function getProvince(row) {
-    const col = findColumn([
-      "استان رسوب",
-      "استان",
-      "استان ایجاد کننده",
-      "استان فرستنده",
-      "استان گیرنده"
-    ]);
-
-    if (!col) return "نامشخص";
-
-    const value = normalize(row[col]);
-    const k = key(value);
-
-    if (k.includes("خوزستان")) return "خوزستان";
-    if (k.includes("لرستان")) return "لرستان";
-    return value || "نامشخص";
-  }
-
-  function getDays(row) {
-    const col = findColumn(["تعداد روزهای رسوب"]);
-    if (!col) return 0;
-    const value = String(row[col] ?? "").replace(/,/g, "").trim();
-    const n = Number(value);
-    return Number.isFinite(n) ? n : 0;
-  }
-
-  function setStatus(message, error = false) {
-    $("status").textContent = message;
-    $("status").className = error ? "status error" : "status";
-  }
-
-  function render() {
-    const query = normalize($("search").value).toLowerCase();
-    const filtered = allRows.filter(row =>
-      !query || columns.some(col =>
-        normalize(row[col]).toLowerCase().includes(query)
-      )
-    );
-
-    const header = $("headers");
-    header.replaceChildren();
-    columns.forEach(col => {
-      const th = document.createElement("th");
-      th.textContent = col;
-      header.appendChild(th);
-    });
-
-    const body = $("results");
-    body.replaceChildren();
-
-    filtered.slice(0, 1000).forEach(row => {
-      const tr = document.createElement("tr");
-      columns.forEach(col => {
-        const td = document.createElement("td");
-        td.textContent = row[col] == null ? "" : String(row[col]);
-        tr.appendChild(td);
-      });
-      body.appendChild(tr);
-    });
-
-    $("tableInfo").textContent =
-      `نتایج: ${filtered.length.toLocaleString("fa-IR")} ردیف؛ نمایش حداکثر ۱۰۰۰ ردیف اول.`;
-  }
-
-  function analyze(rows) {
-    allRows = rows;
-    columns = rows.length ? Object.keys(rows[0]) : [];
-
-    const provinceColumn = findColumn(["استان رسوب"]);
-    if (!provinceColumn) {
-      setStatus(
-        "ستون «استان رسوب» در فایل پیدا نشد. عنوان ستون‌های فایل را بررسی کن.",
-        true
-      );
-      return;
-    }
-
-    let kh = 0, lo = 0, unknown = 0, days = 0;
-
-    allRows.forEach(row => {
-      const province = getProvince(row);
-      if (province === "خوزستان") kh++;
-      else if (province === "لرستان") lo++;
-      else unknown++;
-      days += getDays(row);
-    });
-
-    $("total").textContent = allRows.length.toLocaleString("fa-IR");
-    $("khuzestan").textContent = kh.toLocaleString("fa-IR");
-    $("lorestan").textContent = lo.toLocaleString("fa-IR");
-    $("unknown").textContent = unknown.toLocaleString("fa-IR");
-    $("days").textContent = days.toLocaleString("fa-IR");
-
-    setStatus(
-      `فایل با موفقیت خوانده شد. ستون استان: «${provinceColumn}». ` +
-      `خوزستان: ${kh}، لرستان: ${lo}، نامشخص: ${unknown}`
-    );
-
-    render();
-  }
-
-  $("loadBtn").addEventListener("click", async () => {
-    const file = $("fileInput").files[0];
-
-    if (!file) {
-      setStatus("ابتدا فایل اکسل را انتخاب کن.", true);
-      return;
-    }
-
-    if (typeof XLSX === "undefined") {
-      setStatus("کتابخانه خواندن اکسل بارگذاری نشده است. اینترنت را بررسی کن.", true);
-      return;
-    }
-
-    try {
-      setStatus("در حال خواندن فایل...");
-      const buffer = await file.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type: "array" });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-
-      if (!rows.length) {
-        setStatus("در شیت اول داده‌ای پیدا نشد.", true);
-        return;
-      }
-
-      analyze(rows);
-    } catch (error) {
-      setStatus("خواندن فایل ناموفق بود. فایل اکسل سالم و قابل باز شدن را انتخاب کن.", true);
-      console.error(error);
-    }
-  });
-
-  $("search").addEventListener("input", render);
-})();
+function norm(v){
+ return String(v??'').replace(/ي/g,'ی').replace(/ك/g,'ک')
+ .replace(/\u200c/g,'').replace(/\s+/g,'').trim().toLowerCase();
+}
+function findKey(list,exact,contains=[]){
+ for(const h of list){if(exact.some(x=>norm(h)===norm(x)))return h}
+ for(const h of list){if(contains.some(x=>norm(h).includes(norm(x))))return h}
+ return '';
+}
+function num(v){
+ if(typeof v==='number')return Number.isFinite(v)?v:0;
+ let s=String(v??'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+ .replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+ .replace(/,/g,'').replace(/٬/g,'').trim();
+ let n=parseFloat(s);return Number.isFinite(n)?n:0;
+}
+function fmt(n){return Number(n||0).toLocaleString('fa-IR',{maximumFractionDigits:2})}
+function val(row,key){return key?String(row[key]??'').trim():''}
+function setMessage(text,error=false){
+ const e=document.getElementById('message');
+ e.textContent=text;e.className='status '+(error?'error':'good');
+}
+async function loadFile(){
+ const file=document.getElementById('file').files[0];
+ if(!file){setMessage('ابتدا یک فایل اکسل انتخاب کن.',true);return}
+ if(typeof XLSX==='undefined'){setMessage('کتابخانه اکسل بارگذاری نشده؛ اتصال اینترنت را بررسی کن.',true);return}
+ try{
+ setMessage('در حال خواندن فایل...');
+ const buffer=await file.arrayBuffer();
+ let wb;
+ if(file.name.toLowerCase().endsWith('.csv')){
+ const text=new TextDecoder('utf-8').decode(buffer);
+ wb=XLSX.read(text,{type:'string'});
+ }else{wb=XLSX.read(buffer,{type:'array'})}
+ const sheet=wb.Sheets[wb.SheetNames[0]];
+ const raw=XLSX.utils.sheet_to_json(sheet,{defval:'',raw:true});
+ if(!raw.length)throw new Error('در برگه اول فایل، ردیفی پیدا نشد.');
+ headers=Object.keys(raw[0]);
+ allRows=raw.map((r,i)=>({...r,__row:i+2}));
+ provinceKey=findKey(headers,['استان رسوب'],['استانرسوب']);
+ cityKey=findKey(headers,['شهر رسوب'],['شهررسوب']);
+ nodeKey=findKey(headers,['نود رسوب'],['نودرسوب']);
+ daysKey=findKey(headers,['تعداد روزهای رسوب','روزهای رسوب'],['تعدادروزهایرسوب','روزهایرسوب']);
+ typeKey=findKey(headers,['نوع رسوب'],['نوعرسوب']);
+ statusKey=findKey(headers,['وضعیت رسوب'],['وضعیترسوب']);
+ barcodeKey=findKey(headers,['بارکد','بارکد مرسوله'],['بارکد']);
+ if(!provinceKey)throw new Error('ستون «استان رسوب» پیدا نشد. عنوان ستون‌ها را بررسی کن.');
+ if(!daysKey)throw new Error('ستون «تعداد روزهای رسوب» پیدا نشد. عنوان ستون‌ها را بررسی کن.');
+ allRows=allRows.map(r=>{
+ const p=val(r,provinceKey).replace(/ي/g,'ی').replace(/ك/g,'ک');
+ let province=p.includes('خوزستان')?'خوزستان':p.includes('لرستان')?'لرستان':p||'نامشخص';
+ return {...r,__province:province,__days:num(r[daysKey])};
+ });
+ document.getElementById('dashboard').classList.remove('hidden');
+ populateFilters();
+ applyFilters();
+ setMessage('فایل با موفقیت خوانده شد: '+fmt(allRows.length)+' ردیف.',false);
+ }catch(e){setMessage('خطا: '+e.message,true)}
+}
+function fillSelect(id,values,first){
+ const el=document.getElementById(id),old=el.value;
+ el.innerHTML='';
+ const opt=document.createElement('option');opt.value='';opt.textContent=first;el.appendChild(opt);
+ [...new Set(values.filter(v=>String(v).trim()!=='').map(String))].sort((a,b)=>a.localeCompare(b,'fa')).forEach(v=>{
+ const o=document.createElement('option');o.value=v;o.textContent=v;el.appendChild(o);
+ });
+ if([...el.options].some(o=>o.value===old))el.value=old;
+}
+function populateFilters(){
+ fillSelect('fProvince',allRows.map(r=>r.__province),'همه استان‌ها');
+ fillSelect('fCity',cityKey?allRows.map(r=>val(r,cityKey)):[],'همه شهرها');
+ fillSelect('fNode',nodeKey?allRows.map(r=>val(r,nodeKey)):[],'همه نودها');
+ fillSelect('fType',typeKey?allRows.map(r=>val(r,typeKey)):[],'همه انواع');
+ fillSelect('fStatus',statusKey?allRows.map(r=>val(r,statusKey)):[],'همه وضعیت‌ها');
+}
+function applyFilters(){
+ const province=document.getElementById('fProvince').value;
+ const city=document.getElementById('fCity').value;
+ const node=document.getElementById('fNode').value;
+ const type=document.getElementById('fType').value;
+ const status=document.getElementById('fStatus').value;
+ const search=norm(document.getElementById('fSearch').value);
+ const min=document.getElementById('fMin').value;
+ const max=document.getElementById('fMax').value;
+ filteredRows=allRows.filter(r=>{
+  if(province&&r.__province!==province)return false;
+  if(city&&val(r,cityKey)!==city)return false;
+  if(node&&val(r,nodeKey)!==node)return false;
+  if(type&&val(r,typeKey)!==type)return false;
+  if(status&&val(r,statusKey)!==status)return false;
+  if(min!==''&&r.__days<num(min))return false;
+  if(max!==''&&r.__days>num(max))return false;
+  if(search&&!headers.some(h=>norm(r[h]).includes(search)))return false;
+  return true;
+ });
+ render();
+}
+function resetFilters(){
+ ['fProvince','fCity','fNode','fType','fStatus'].forEach(id=>document.getElementById(id).value='');
+ ['fSearch','fMin','fMax'].forEach(id=>document.getElementById(id).value='');
+ applyFilters();
+}
+function setText(id,text){document.getElementById(id).textContent=text}
+function render(){
+ const rows=filteredRows;
+ const kh=rows.filter(r=>r.__province==='خوزستان').length;
+ const lo=rows.filter(r=>r.__province==='لرستان').length;
+ const sum=rows.reduce((a,r)=>a+r.__days,0);
+ const max=rows.reduce((a,r)=>Math.max(a,r.__days),0);
+ setText('mTotal',fmt(rows.length));setText('mKh',fmt(kh));setText('mLo',fmt(lo));
+ setText('mAvg',fmt(rows.length?sum/rows.length:0));
+ setText('mMax',fmt(max));setText('mSum',fmt(sum));
+ setText('filterInfo','تعداد ردیف‌های منطبق با فیلترها: '+fmt(rows.length));
+ renderBars('provinceChart',group(rows,r=>r.__province));
+ renderBars('cityChart',group(rows,r=>val(r,cityKey)||'نامشخص').slice(0,10));
+ renderBars('nodeChart',group(rows,r=>val(r,nodeKey)||'نامشخص').slice(0,10));
+ renderBars('typeChart',group(rows,r=>val(r,typeKey)||'نامشخص').slice(0,10));
+ const sorted=[...rows].sort((a,b)=>b.__days-a.__days).slice(0,100);
+ makeTable('topTable',sorted,uniqueKeys([barcodeKey,provinceKey,cityKey,nodeKey,daysKey,typeKey,statusKey].filter(Boolean)));
+ makeTable('dataTable',rows.slice(0,100),headers);
+ setText('tableInfo','نمایش '+fmt(Math.min(rows.length,100))+' ردیف از '+fmt(rows.length)+' ردیف فیلترشده.');
+}
+function group(rows,keyFn){
+ const map=new Map();
+ rows.forEach(r=>{const k=keyFn(r)||'نامشخص';map.set(k,(map.get(k)||0)+1)});
+ return [...map.entries()].sort((a,b)=>b[1]-a[1]).map(([name,count])=>({name,count}));
+}
+function renderBars(id,items){
+ const el=document.getElementById(id);
+ if(!items.length){el.innerHTML='<p class="note">داده‌ای برای نمایش وجود ندارد.</p>';return}
+ const max=Math.max(...items.map(x=>x.count),1);
+ el.innerHTML=items.map(x=>'<div class="barrow"><div class="barhead"><span>'+escapeHtml(x.name)+'</span><b>'+fmt(x.count)+'</b></div><div class="bar"><span style="width:'+Math.max(1,x.count/max*100)+'%"></span></div></div>').join('');
+}
+function uniqueKeys(arr){return [...new Set(arr)]}
+function escapeHtml(v){
+ return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function makeTable(id,rows,cols){
+ const el=document.getElementById(id);
+ if(!cols.length||!rows.length){el.innerHTML='<tbody><tr><td>داده‌ای وجود ندارد.</td></tr></tbody>';return}
+ el.innerHTML='<thead><tr>'+cols.map(c=>'<th>'+escapeHtml(c)+'</th>').join('')+'</tr></thead><tbody>'+
+ rows.map(r=>'<tr>'+cols.map(c=>'<td>'+escapeHtml(c==='__province'?r.__province:c==='__days'?r.__days:r[c])+'</td>').join('')+'</tr>').join('')+'</tbody>';
+}
+function exportExcel(){
+ if(!filteredRows.length){alert('داده‌ای برای خروجی وجود ندارد.');return}
+ const exportRows=filteredRows.map(r=>{
+ const out={};
+ headers.forEach(h=>out[h]=r[h]);
+ return out;
+ });
+ const wb=XLSX.utils.book_new();
+ const ws=XLSX.utils.json_to_sheet(exportRows);
+ XLSX.utils.book_append_sheet(wb,ws,'رسوب فیلترشده');
+ XLSX.writeFile(wb,'Tipax_Residue_Filtered.xlsx');
+}
+['fProvince','fCity','fNode','fType','fStatus'].forEach(id=>document.getElementById(id).addEventListener('change',applyFilters));
+['fSearch','fMin','fMax'].forEach(id=>document.getElementById(id).addEventListener('input',applyFilters));
 </script>
 </body>
 </html>
