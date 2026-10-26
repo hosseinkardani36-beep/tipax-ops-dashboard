@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>بدهی نمایندگان تا تاریخ</title>
+<style>
+body{font-family:Tahoma,sans-serif;max-width:1100px;margin:16px auto;padding:0 10px;background:#f5f6f8;color:#222}
+.card{background:#fff;border-radius:10px;padding:14px;margin-bottom:12px;box-shadow:0 1px 4px #0002}
+input,select,button{font:inherit;padding:7px;margin:3px}
+button{cursor:pointer;background:#e4002b;color:#fff;border:0;border-radius:6px;padding:7px 14px}
+button.sec{background:#555}
+.msg{color:#a00;min-height:1.3em}.hide{display:none}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;font-size:13px;direction:ltr;min-width:100%}
+th,td{border:1px solid #ccc;padding:4px 8px;text-align:center;white-space:nowrap}
+th{background:#1e6b2e;color:#fff}
+td.n{font-weight:bold;text-align:right;direction:rtl}
+.note{display:block;font-size:11px;color:#06c;font-weight:normal;white-space:normal;max-width:170px}
+</style>
+</head>
+<body>
+<h2>بدهی نمایندگان تا تاریخ (خوزستان و لرستان)</h2>
+<div class="msg" id="msg"></div>
+
+<div class="card" id="authBox">
+  <input id="email" type="email" placeholder="ایمیل" dir="ltr">
+  <input id="pass" type="password" placeholder="رمز عبور" dir="ltr">
+  <button id="btnLogin">ورود</button>
+</div>
+<div class="card hide" id="userBox"><span id="who"></span> <button class="sec" id="btnLogout">خروج</button></div>
+<div class="card hide" id="pendingBox">حساب شما هنوز توسط مالک تأیید نشده است.</div>
+
+<div class="card hide" id="uploadBox">
+  <b>ثبت گزارش بدهی یک تاریخ</b><br>
+  <input type="file" id="file" accept=".xlsx,.xls">
+  تاریخ شمسی: <input id="jdate" placeholder="1405/08/02" dir="ltr" style="width:110px">
+  <button id="btnSave">ذخیره</button>
+  <div style="font-size:12px;color:#666">فقط نام نود، استان، وضعیت و سه ستون مانده ذخیره می‌شود؛ نام مدیر و شماره تماس هرگز.</div>
+</div>
+
+<div class="card hide" id="viewBox">
+  حداقل مانده: <input id="minv" value="100000000" dir="ltr" style="width:120px">
+  استان: <select id="prov"><option value="">همه</option><option>خوزستان</option><option>لرستان</option></select>
+  حذف نودها (با ویرگول): <input id="excl" value="هاب اهواز (تی هاب)" style="width:230px">
+  <button id="btnShow">نمایش</button>
+  <span style="font-size:12px;color:#666">مقادیر مطابق فایل (ستون «مانده»)</span>
+</div>
+
+<div class="card hide" id="noteBox">
+  <b>یادداشت پیگیری</b>
+  نود: <input id="nnode" list="nodes" style="width:230px"><datalist id="nodes"></datalist>
+  تاریخ شمسی: <input id="ndate" placeholder="1405/08/05" dir="ltr" style="width:110px">
+  متن: <input id="ntext" placeholder="واریز ... تومان" style="width:240px">
+  <button id="btnNote">ثبت یادداشت</button>
+</div>
+
+<div class="card wrap hide" id="matBox"><table><thead id="mh"></thead><tbody id="mb"></tbody></table></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const sb = supabase.createClient("https://fywshcokzptflfhtdjoz.supabase.co",
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ5d3NoY29renB0ZmxmaHRkam96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5Njc2MTAsImV4cCI6MjEwODU0MzYxMH0.XnjY6WGWpl9t7HHWwhq3bLU_LQLtjzeKN_HFZMrNXz8");
+const $ = id => document.getElementById(id);
+const say = t => $("msg").textContent = t || "";
+let profile = null;
+
+// --- Jalali helpers ---
+function j2g(jy,jm,jd){jy+=1595;let days=-355668+(365*jy)+(~~(jy/33))*8+~~(((jy%33)+3)/4)+jd+((jm<7)?(jm-1)*31:((jm-7)*30)+186);let gy=400*~~(days/146097);days%=146097;if(days>36524){gy+=100*~~(--days/36524);days%=36524;if(days>=365)days++;}gy+=4*~~(days/1461);days%=1461;if(days>365){gy+=~~((days-1)/365);days=(days-1)%365;}let gd=days+1;const sal=[0,31,((gy%4==0&&gy%100!=0)||(gy%400==0))?29:28,31,30,31,30,31,31,30,31,30,31];let gm;for(gm=0;gm<13&&gd>sal[gm];gm++)gd-=sal[gm];return [gy,gm,gd];}
+function toIso(j){
+  const s=String(j).replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).trim();
+  const m=s.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/); if(!m) return null;
+  const [a,b,c]=[+m[1],+m[2],+m[3]]; if(b<1||b>12||c<1||c>31) return null;
+  const g=j2g(a,b,c); return g[0]+"-"+String(g[1]).padStart(2,"0")+"-"+String(g[2]).padStart(2,"0");
+}
+function toJ(iso){
+  const o={}; new Intl.DateTimeFormat("en-US-u-ca-persian",{year:"numeric",month:"2-digit",day:"2-digit",timeZone:"UTC"})
+    .formatToParts(new Date(iso+"T00:00:00Z")).forEach(x=>o[x.type]=x.value);
+  return o.year.replace(/\D/g,"")+"/"+o.month+"/"+o.day;
+}
+const fmt = v => v<0 ? "("+Math.abs(v).toLocaleString("en-US")+")" : v.toLocaleString("en-US");
+
+// --- auth ---
+async function refresh(){
+  say("");
+  const { data:{ session } } = await sb.auth.getSession();
+  ["authBox","userBox","pendingBox","uploadBox","viewBox","noteBox","matBox"].forEach(i=>$(i).classList.add("hide"));
+  if(!session){ $("authBox").classList.remove("hide"); return; }
+  const { data, error } = await sb.from("profiles").select("*").eq("id", session.user.id).single();
+  if(error){ say(error.message); return; }
+  profile = data; $("who").textContent = profile.email + " — " + profile.role;
+  $("userBox").classList.remove("hide");
+  if(!profile.approved){ $("pendingBox").classList.remove("hide"); return; }
+  const adm = profile.role==="owner"||profile.role==="admin";
+  if(adm){ $("uploadBox").classList.remove("hide"); $("noteBox").classList.remove("hide"); }
+  $("viewBox").classList.remove("hide"); $("matBox").classList.remove("hide");
+  showMatrix();
+}
+$("btnLogin").onclick = async ()=>{
+  const { error } = await sb.auth.signInWithPassword({ email:$("email").value.trim(), password:$("pass").value });
+  if(error) say(error.message); else refresh();
+};
+$("btnLogout").onclick = async ()=>{ await sb.auth.signOut(); refresh(); };
+
+// --- upload ---
+$("btnSave").onclick = async ()=>{
+  const f=$("file").files[0], iso=toIso($("jdate").value);
+  if(!f){ say("فایل را انتخاب کنید."); return; }
+  if(!iso){ say("تاریخ شمسی را به شکل 1405/08/02 وارد کنید."); return; }
+  say("در حال پردازش...");
+  const wb = XLSX.read(await f.arrayBuffer(), {type:"array"});
+  const ws = wb.Sheets["گزارش بدهی-کامل"] || wb.Sheets[wb.SheetNames[0]];
+  const raw = XLSX.utils.sheet_to_json(ws, {defval:""});
+  if(!raw.length){ say("شیت خالی است."); return; }
+  const rows = raw.map(r=>{ const o={}; Object.keys(r).forEach(k=>o[k.trim()]=r[k]); return o; });
+  for(const c of ["نام در جت","استان","مانده"]) if(!(c in rows[0])){ say("ستون پیدا نشد: "+c); return; }
+  const num = v => Math.round(Number(v)||0);
+  const keep = rows.filter(r=>/خوزستان|لرستان/.test(String(r["استان"]))).map(r=>({
+    node:String(r["نام در جت"]).trim(), province:String(r["استان"]).trim(), status:String(r["وضعیت"]||"").trim(),
+    balance:num(r["مانده"]), balance_no_damage:num(r["بدهی بدون خسارت"]), damage:num(r["مانده بدهی خسارت"])
+  })).filter(r=>r.node);
+  if(!keep.length){ say("ردیفی از خوزستان یا لرستان پیدا نشد."); return; }
+  const { data:ex } = await sb.from("debt_snapshots").select("id").eq("snapshot_date",iso);
+  if(ex && ex.length){
+    if(profile.role!=="owner"){ say("برای این تاریخ قبلاً ثبت شده؛ فقط مالک می‌تواند جایگزین کند."); return; }
+    if(!confirm("برای این تاریخ ثبت وجود دارد. جایگزین شود؟")){ say(""); return; }
+    const { error } = await sb.from("debt_snapshots").delete().eq("id",ex[0].id);
+    if(error){ say(error.message); return; }
+  }
+  const { data:s, error:e1 } = await sb.from("debt_snapshots").insert({snapshot_date:iso, source_file_name:f.name, row_count:keep.length}).select("id").single();
+  if(e1){ say(e1.message); return; }
+  const { error:e2 } = await sb.from("debt_rows").insert(keep.map(r=>({...r, snapshot_id:s.id})));
+  if(e2){ say("خطا در ذخیره ردیف‌ها: "+e2.message); return; }
+  say(`ذخیره شد: ${keep.length} ردیف برای ${toJ(iso)}.`); showMatrix();
+};
+
+// --- notes ---
+$("btnNote").onclick = async ()=>{
+  const iso=toIso($("ndate").value), node=$("nnode").value.trim(), text=$("ntext").value.trim();
+  if(!node||!iso||!text){ say("نود، تاریخ شمسی و متن را کامل کنید."); return; }
+  const { error } = await sb.from("debt_notes").upsert({node, note_date:iso, note:text}, {onConflict:"node,note_date"});
+  if(error){ say(error.message); return; }
+  $("ntext").value=""; say("یادداشت ثبت شد."); showMatrix();
+};
+
+// --- matrix ---
+async function showMatrix(){
+  const { data:sn, error:e0 } = await sb.from("debt_snapshots").select("id,snapshot_date").order("snapshot_date",{ascending:false}).limit(12);
+  if(e0){ say(e0.message); return; }
+  if(!sn.length){ $("mh").textContent=""; $("mb").textContent=""; say("هنوز گزارشی ثبت نشده است."); return; }
+  sn.reverse();
+  const excl = $("excl").value.split(/[,،]/).map(x=>x.trim()).filter(Boolean);
+  const prov = $("prov").value, minv = Number($("minv").value.replace(/\D/g,""))||0;
+  const per = await Promise.all(sn.map(s=>sb.from("debt_rows").select("node,province,balance").eq("snapshot_id",s.id).limit(1000)));
+  const bal = {}, ranks = {}, provOf = {};
+  sn.forEach((s,i)=>{
+    const rows = (per[i].data||[]).filter(r=>!excl.includes(r.node)).sort((a,b)=>b.balance-a.balance);
+    bal[s.snapshot_date] = {}; ranks[s.snapshot_date] = {};
+    rows.forEach((r,k)=>{ bal[s.snapshot_date][r.node]=r.balance; ranks[s.snapshot_date][r.node]=k+1; provOf[r.node]=r.province; });
+  });
+  const last = sn[sn.length-1].snapshot_date, prev = sn.length>1 ? sn[sn.length-2].snapshot_date : null;
+  const { data:nt } = await sb.from("debt_notes").select("node,note_date,note").gte("note_date",sn[0].snapshot_date).limit(1000);
+  const notes = {}; (nt||[]).forEach(n=>notes[n.node+"|"+n.note_date]=n.note);
+  const dates = [...new Set([...sn.map(s=>s.snapshot_date), ...(nt||[]).map(n=>n.note_date)])].sort();
+  const nodes = Object.keys(bal[last]).filter(n=>bal[last][n]>=minv && (!prov||provOf[n]===prov)).sort((a,b)=>ranks[last][a]-ranks[last][b]);
+  $("nodes").textContent=""; nodes.forEach(n=>{ const o=document.createElement("option"); o.value=n; $("nodes").appendChild(o); });
+  const colMax = {}; dates.forEach(d=>{ colMax[d]=Math.max(1,...nodes.map(n=>(bal[d]&&bal[d][n])||0)); });
+  const mh=$("mh"); mh.textContent="";
+  const hr=document.createElement("tr");
+  ["رتبه قبلی","رتبه فعلی","نود",...dates.map(toJ)].forEach(t=>{ const th=document.createElement("th"); th.textContent=t; hr.appendChild(th); });
+  mh.appendChild(hr);
+  const mb=$("mb"); mb.textContent="";
+  nodes.forEach(n=>{
+    const tr=document.createElement("tr");
+    const add=(t,cls)=>{ const td=document.createElement("td"); td.textContent=t; if(cls) td.className=cls; tr.appendChild(td); return td; };
+    add(prev && ranks[prev][n] ? ranks[prev][n] : "-"); add(ranks[last][n]); add(n,"n");
+    dates.forEach(d=>{
+      const v = bal[d] ? bal[d][n] : undefined, td = add(v===undefined ? "" : fmt(v));
+      if(v!==undefined){ const t=Math.max(0,Math.min(1,v/colMax[d])); td.style.background=`hsl(${60*(1-t)},85%,${78-8*t}%)`; }
+      const note = notes[n+"|"+d];
+      if(note){ const s=document.createElement("span"); s.className="note"; s.textContent=note; td.appendChild(s); }
+    });
+    mb.appendChild(tr);
+  });
+  say(`${nodes.length} نود نمایش داده شد.`);
+}
+$("btnShow").onclick = showMatrix;
+refresh();
+</script>
+</body>
+</html>
