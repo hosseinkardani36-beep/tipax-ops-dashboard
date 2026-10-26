@@ -53,6 +53,16 @@ th{background:#eee}
   <tbody id="rows"></tbody></table>
 </div>
 
+<div class="card hide" id="detailBox">
+  <h3>ریز شهر و نود و مقایسه</h3>
+  سطح: <select id="lvl"><option value="province">استان</option><option value="city">شهر</option><option value="node" selected>نود</option></select>
+  تاریخ جدید: <select id="sa"></select>
+  مقایسه با: <select id="sb"></select>
+  <button id="btnDetail">نمایش</button>
+  <div style="overflow-x:auto"><table><thead><tr><th>استان</th><th>شهر</th><th>نود</th><th>تعداد</th><th>تغییر تعداد</th><th>میانگین روز</th><th>بیشترین روز</th><th>بحرانی</th><th>تغییر بحرانی</th></tr></thead>
+  <tbody id="drows"></tbody></table></div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
@@ -66,7 +76,7 @@ let profile = null;
 async function refresh(){
   say("");
   const { data:{ session } } = await sb.auth.getSession();
-  ["authBox","userBox","pendingBox","uploadBox","listBox"].forEach(i=>$(i).classList.add("hide"));
+  ["authBox","userBox","pendingBox","uploadBox","listBox","detailBox"].forEach(i=>$(i).classList.add("hide"));
   if(!session){ $("authBox").classList.remove("hide"); return; }
   const { data, error } = await sb.from("profiles").select("*").eq("id", session.user.id).single();
   if(error){ say("خطا در خواندن پروفایل: "+error.message); return; }
@@ -83,6 +93,7 @@ async function loadList(){
   const { data, error } = await sb.from("snapshot_totals").select("*").order("snapshot_date",{ascending:false}).limit(60);
   if(error){ say(error.message); return; }
   const tb = $("rows"); tb.textContent = "";
+  initDetail();
   data.forEach(r=>{
     const tr = document.createElement("tr");
     [r.snapshot_date, r.province, r.row_count, r.avg_days, r.max_days, r.critical_count, r.high_count]
@@ -124,6 +135,13 @@ $("btnSave").onclick = async ()=>{
     });
   });
   if(!used){ say("هیچ ردیفی از خوزستان یا لرستان پیدا نشد."); return; }
+  const { data:ex } = await sb.from("snapshots").select("id").eq("snapshot_date",date);
+  if(ex && ex.length){
+    if(profile.role!=="owner"){ say("برای این تاریخ قبلاً ثبت شده؛ فقط مالک می‌تواند جایگزین کند."); return; }
+    if(!confirm("برای این تاریخ قبلاً ثبت وجود دارد. جایگزین شود؟")) { say(""); return; }
+    const { error:ed } = await sb.from("snapshots").delete().eq("id",ex[0].id);
+    if(ed){ say("خطا در حذف ثبت قبلی: "+ed.message); return; }
+  }
   const { data:snap, error:e1 } = await sb.from("snapshots").insert({
     snapshot_date:date, source_file_name:f.name, row_count:used, critical_days:tc, high_days:th, medium_days:tm
   }).select("id").single();
@@ -135,6 +153,38 @@ $("btnSave").onclick = async ()=>{
   }
   say(`ذخیره شد: ${used} ردیف استفاده شد، ${skipped} ردیف خارج از خوزستان/لرستان نادیده گرفته شد.`);
   loadList();
+};
+
+async function initDetail(){
+  $("detailBox").classList.remove("hide");
+  const { data, error } = await sb.from("snapshots").select("id,snapshot_date").order("snapshot_date",{ascending:false}).limit(60);
+  if(error||!data) return;
+  ["sa","sb"].forEach((id,i)=>{
+    const s=$(id); s.textContent="";
+    if(id==="sb"){ const o=document.createElement("option"); o.value=""; o.textContent="بدون مقایسه"; s.appendChild(o); }
+    data.forEach(r=>{ const o=document.createElement("option"); o.value=r.id; o.textContent=r.snapshot_date; s.appendChild(o); });
+    s.selectedIndex = id==="sa" ? 0 : (data.length>1 ? 2 : 0);
+  });
+}
+async function fetchStats(id,lvl){
+  if(!id) return [];
+  const { data, error } = await sb.from("snapshot_stats").select("*").eq("snapshot_id",id).eq("level",lvl).limit(1000);
+  if(error){ say(error.message); return []; }
+  return data;
+}
+$("btnDetail").onclick = async ()=>{
+  say("");
+  const lvl=$("lvl").value, A=await fetchStats($("sa").value,lvl), B=await fetchStats($("sb").value,lvl);
+  const key=r=>[r.province,r.city,r.node].join("|"), mb={}; B.forEach(r=>mb[key(r)]=r);
+  const hasB = !!$("sb").value, tb=$("drows"); tb.textContent="";
+  A.sort((x,y)=>y.critical_count-x.critical_count||y.row_count-x.row_count).forEach(r=>{
+    const b=mb[key(r)], d=(a,c)=>hasB ? (a-(c?c:0)) : "";
+    const cells=[r.province,r.city||"",r.node||"",r.row_count,d(r.row_count,b&&b.row_count),
+      r.row_count?(r.total_days/r.row_count).toFixed(1):"",r.max_days,r.critical_count,d(r.critical_count,b&&b.critical_count)];
+    const tr=document.createElement("tr");
+    cells.forEach(v=>{ const td=document.createElement("td"); td.textContent=v; tr.appendChild(td); });
+    tb.appendChild(tr);
+  });
 };
 
 refresh();
