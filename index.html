@@ -3,334 +3,431 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>داشبورد مدیریتی رسوب تیپاکس</title>
+<title>داشبورد پیشرفته عملیات تیپاکس</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
+:root{--navy:#122541;--blue:#1769aa;--bg:#f1f4f9;--green:#14805e;--red:#c23949;--orange:#d88916}
 *{box-sizing:border-box}
-body{margin:0;background:#f1f4f9;color:#203047;font-family:Tahoma,Arial,sans-serif}
-header{background:linear-gradient(120deg,#10233f,#1769aa);color:white;padding:22px}
+body{margin:0;background:var(--bg);color:#24354b;font-family:Tahoma,Arial,sans-serif}
+header{background:linear-gradient(120deg,#10233f,#1769aa);color:white;padding:23px}
 header h1{font-size:22px;margin:0 0 10px}
-header p{font-size:13px;line-height:2;margin:0}
-main{max-width:1450px;margin:auto;padding:14px}
-.panel,.card{background:white;border-radius:12px;padding:15px;margin-bottom:14px;box-shadow:0 3px 12px #10233f0d}
-h2{font-size:16px;margin:0 0 14px;color:#17385e}
-h3{font-size:14px;margin:0 0 12px}
-button{border:0;border-radius:8px;background:#1769aa;color:white;padding:11px 14px;font-family:inherit;cursor:pointer;font-size:12px}
-button.secondary{background:#e7eef7;color:#17385e}
-button.green{background:#13805c}
-input,select{width:100%;padding:10px;border:1px solid #ccd6e3;border-radius:7px;font-family:inherit;font-size:12px;background:white}
-label{display:block;font-size:12px;margin-bottom:6px;color:#5c6c80}
-.upload{border:2px dashed #9db4d0;background:#f8fbff;padding:20px;text-align:center;border-radius:10px}
-.upload input{max-width:400px;margin:10px auto}
-.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
-.metric{background:white;border-radius:10px;padding:15px;border-top:4px solid #1769aa;box-shadow:0 3px 12px #10233f0d}
-.metric small{display:block;color:#63738a;font-size:11px;line-height:1.8;margin-bottom:8px}
-.metric strong{font-size:23px;color:#10233f;overflow-wrap:anywhere}
-.metric.red{border-color:#c43d4b}.metric.orange{border-color:#e49a24}.metric.green{border-color:#13805c}
-.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:11px}
-.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px}
-.tablewrap{overflow:auto;max-height:480px;border:1px solid #e3eaf2;border-radius:8px}
-table{width:100%;border-collapse:collapse;background:white;font-size:12px;white-space:nowrap}
-th,td{padding:10px;border-bottom:1px solid #e6ebf2;text-align:right}
-th{position:sticky;top:0;background:#eaf1f9;z-index:1}
-tr:hover td{background:#f7faff}
-.baritem{margin:13px 0}
-.barlabel{display:flex;justify-content:space-between;gap:8px;font-size:12px;margin-bottom:5px}
-.barbg{height:9px;border-radius:10px;background:#e7edf5;overflow:hidden}
-.barfill{height:100%;background:#1976bb;border-radius:10px}
-.note{font-size:11px;line-height:2;color:#69798d}
+header p{font-size:12px;line-height:2;margin:0}
+main{max-width:1500px;margin:auto;padding:14px}
+.panel,.metric{background:#fff;border-radius:12px;padding:15px;margin-bottom:14px;box-shadow:0 3px 12px #10233f0c}
+h2{font-size:16px;color:var(--navy);margin:0 0 14px}
+h3{font-size:13px;margin:0 0 12px}
+label{display:block;font-size:12px;color:#5b6d83;margin-bottom:6px}
+input,select{width:100%;padding:10px;border:1px solid #cbd6e3;border-radius:7px;background:#fff;font-family:inherit;font-size:12px}
+button{border:0;border-radius:8px;background:var(--blue);color:white;padding:11px 13px;font-family:inherit;font-size:12px;cursor:pointer}
+button.green{background:var(--green)}
+button.dark{background:var(--navy)}
+button.light{background:#e7eef7;color:#193b60}
+button:hover{opacity:.9}
+.upload{background:#f8fbff;border:2px dashed #9db5d0;border-radius:10px;padding:20px;text-align:center}
+.upload input{max-width:430px;margin:12px auto}
 .status{font-size:12px;line-height:2;margin-top:10px;overflow-wrap:anywhere}
 .good{color:#08774e}.bad{color:#bd2e40}
-.tag{display:inline-block;padding:5px 8px;border-radius:5px;font-size:11px}
-.tag.red{background:#fde7e9;color:#ad2634}
-.tag.orange{background:#fff0d7;color:#8a5900}
-.tag.green{background:#e0f5ea;color:#08774e}
+.note{font-size:11px;line-height:2;color:#69798c}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:14px}
+.metric{margin:0;border-top:4px solid var(--blue)}
+.metric.red{border-color:var(--red)}.metric.orange{border-color:var(--orange)}.metric.green{border-color:var(--green)}
+.metric small{display:block;color:#617188;font-size:11px;line-height:1.8;margin-bottom:8px}
+.metric strong{font-size:22px;color:var(--navy);overflow-wrap:anywhere}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:11px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(285px,1fr));gap:14px}
+.tablewrap{overflow:auto;max-height:510px;border:1px solid #e3eaf2;border-radius:8px}
+table{width:100%;border-collapse:collapse;background:white;font-size:11px;white-space:nowrap}
+th,td{padding:10px;border-bottom:1px solid #e5ebf2;text-align:right}
+th{position:sticky;top:0;z-index:1;background:#eaf1f9}
+tr:hover td{background:#f6f9fd}
+.baritem{margin:13px 0}
+.barhead{display:flex;justify-content:space-between;gap:8px;font-size:11px;margin-bottom:5px}
+.barbg{height:9px;background:#e7edf5;border-radius:10px;overflow:hidden}
+.barfill{height:100%;background:linear-gradient(90deg,#1769aa,#49a1df);border-radius:10px}
+.badge{display:inline-block;padding:5px 8px;border-radius:5px;font-size:10px;font-weight:bold}
+.b-critical{background:#fde5e7;color:#ae2435}
+.b-high{background:#fff0d5;color:#8b5a00}
+.b-medium{background:#e5efff;color:#215b9b}
+.b-normal{background:#e0f5e9;color:#08734e}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
 .hidden{display:none}
-footer{text-align:center;padding:20px;color:#748198;font-size:11px}
-@media(max-width:600px){header h1{font-size:18px}main{padding:9px}.panel{padding:11px}.metric strong{font-size:20px}}
+footer{text-align:center;color:#718097;padding:20px;font-size:11px}
+@media(max-width:600px){header h1{font-size:18px}main{padding:9px}.panel{padding:11px}.metric strong{font-size:19px}}
 </style>
 </head>
 <body>
 <header>
-<h1>داشبورد مدیریتی تحلیل رسوب تیپاکس</h1>
-<p>خوزستان و لرستان | اولویت‌بندی پیگیری، تحلیل نود و شهر، سن رسوب و وضعیت بارها</p>
+<h1>داشبورد پیشرفته مدیریتی رسوب تیپاکس</h1>
+<p>تحلیل عملیات خوزستان و لرستان | اولویت‌بندی بارها | رتبه‌بندی شهرها و نودها | گزارش پیگیری</p>
 </header>
 <main>
+
 <section class="panel">
-<h2>۱. بارگذاری فایل اکسل رسوب</h2>
+<h2>۱. بارگذاری فایل اکسل</h2>
 <div class="upload">
-<p>فایل اکسل کامل رسوب را انتخاب کنید.</p>
+<p>فایل کامل رسوب را انتخاب کنید.</p>
 <input id="file" type="file" accept=".xlsx,.xls,.csv">
-<br><button onclick="loadFile()">بارگذاری و تحلیل مدیریتی</button>
-<div id="message" class="status">منتظر انتخاب فایل اکسل هستیم.</div>
+<br><button onclick="loadFile()">بارگذاری و تحلیل</button>
+<div id="message" class="status">هنوز فایلی انتخاب نشده است.</div>
 </div>
-<p class="note">اطلاعات در مرورگر تحلیل می‌شود. برای بارگذاری فایل، اتصال اینترنت جهت دریافت کتابخانه اکسل لازم است. فایل اکسل را در مخزن عمومی گیت‌هاب قرار ندهید.</p>
+<p class="note">فایل در مرورگر پردازش می‌شود. برای بارگذاری کتابخانه اکسل، اتصال اینترنت لازم است. فایل حاوی اطلاعات عملیاتی را در مخزن عمومی گیت‌هاب قرار ندهید.</p>
 </section>
 
 <div id="app" class="hidden">
+
 <section class="panel">
-<h2>۲. فیلترهای پیگیری</h2>
+<h2>۲. تنظیم آستانه‌های اولویت پیگیری</h2>
+<div class="filters">
+<div><label>بحرانی: بیشتر از چند روز؟</label><input id="criticalDays" type="number" min="1" value="30"></div>
+<div><label>اولویت بالا: بیشتر از چند روز؟</label><input id="highDays" type="number" min="0" value="14"></div>
+<div><label>اولویت متوسط: بیشتر از چند روز؟</label><input id="mediumDays" type="number" min="0" value="6"></div>
+</div>
+<p class="note">پیش‌فرض: بحرانی بیش از ۳۰ روز، بالا بیش از ۱۴ روز، متوسط بیش از ۶ روز و عادی تا ۶ روز. این آستانه‌ها پیشنهاد اولیه مدیریتی هستند، نه استاندارد رسمی تیپاکس.</p>
+<button onclick="render()">اعمال آستانه‌ها</button>
+</section>
+
+<section class="panel">
+<h2>۳. فیلترهای عملیاتی</h2>
 <div class="filters">
 <div><label>استان رسوب</label><select id="province"></select></div>
 <div><label>شهر رسوب</label><select id="city"></select></div>
 <div><label>نود رسوب</label><select id="node"></select></div>
 <div><label>نوع رسوب</label><select id="type"></select></div>
 <div><label>وضعیت رسوب</label><select id="status"></select></div>
-<div><label>بازه سنی رسوب</label><select id="age"><option value="">همه بازه‌ها</option><option value="0">کمتر از ۳ روز</option><option value="1">۳ تا ۶ روز</option><option value="2">۷ تا ۱۴ روز</option><option value="3">۱۵ تا ۳۰ روز</option><option value="4">بیش از ۳۰ روز</option></select></div>
+<div><label>سطح اولویت</label><select id="priority"><option value="">همه سطوح</option><option>بحرانی</option><option>بالا</option><option>متوسط</option><option>عادی</option></select></div>
 <div><label>حداقل روز رسوب</label><input id="minDays" type="number" min="0" placeholder="مثلاً ۷"></div>
-<div><label>حداکثر روز رسوب</label><input id="maxDays" type="number" min="0" placeholder="مثلاً ۳۰"></div>
-<div><label>جست‌وجو در اطلاعات</label><input id="search" placeholder="بارکد، شهر، نود..."></div>
+<div><label>حداکثر روز رسوب</label><input id="maxDays" type="number" min="0" placeholder="مثلاً ۶۰"></div>
+<div><label>جست‌وجو در بارکد و اطلاعات</label><input id="search" placeholder="بارکد، شهر، قرارداد..."></div>
 </div>
 <div class="actions">
 <button onclick="render()">اعمال فیلتر</button>
-<button class="secondary" onclick="resetFilters()">پاک کردن فیلترها</button>
-<button class="green" onclick="exportRows()">خروجی اکسل اطلاعات فیلترشده</button>
-<button class="secondary" onclick="exportPriority()">خروجی اکسل فهرست پیگیری</button>
+<button class="light" onclick="resetFilters()">پاک کردن فیلترها</button>
+<button class="green" onclick="exportFiltered()">خروجی اکسل اطلاعات فیلترشده</button>
+<button class="dark" onclick="exportFollowup()">خروجی اکسل پیگیری مدیریتی</button>
+<button class="light" onclick="exportReport()">خروجی اکسل گزارش مدیریتی</button>
 </div>
-<p class="note" id="filterInfo"></p>
+<p id="filterInfo" class="note"></p>
 </section>
 
 <div class="metrics">
-<div class="metric"><small>کل ردیف‌های رسوب</small><strong id="total">۰</strong></div>
-<div class="metric"><small>رسوب خوزستان</small><strong id="kh">۰</strong></div>
-<div class="metric"><small>رسوب لرستان</small><strong id="lo">۰</strong></div>
-<div class="metric orange"><small>میانگین روزهای رسوب</small><strong id="avg">۰</strong></div>
-<div class="metric red"><small>بارهای بیش از ۷ روز</small><strong id="over7">۰</strong></div>
-<div class="metric red"><small>بارهای بیش از ۳۰ روز</small><strong id="over30">۰</strong></div>
-<div class="metric green"><small>جمع روزهای رسوب</small><strong id="sumDays">۰</strong></div>
-<div class="metric orange"><small>بیشترین مدت رسوب</small><strong id="maxDays">۰</strong></div>
+<div class="metric"><small>کل ردیف‌های فیلترشده</small><strong id="mTotal">۰</strong></div>
+<div class="metric"><small>رسوب خوزستان</small><strong id="mKh">۰</strong></div>
+<div class="metric"><small>رسوب لرستان</small><strong id="mLo">۰</strong></div>
+<div class="metric orange"><small>میانگین روزهای رسوب</small><strong id="mAvg">۰</strong></div>
+<div class="metric red"><small>بارهای بحرانی</small><strong id="mCritical">۰</strong></div>
+<div class="metric orange"><small>بارهای با اولویت بالا</small><strong id="mHigh">۰</strong></div>
+<div class="metric red"><small>بیشترین روز رسوب</small><strong id="mMax">۰</strong></div>
+<div class="metric green"><small>جمع روزهای رسوب</small><strong id="mSum">۰</strong></div>
 </div>
 
 <section class="panel">
-<h2>۳. جمع‌بندی مدیریتی</h2>
-<div id="insights" class="note">پس از بارگذاری فایل نمایش داده می‌شود.</div>
+<h2>۴. جمع‌بندی مدیریتی</h2>
+<div id="insights" class="note"></div>
 </section>
 
 <div class="grid">
-<section class="panel"><h2>۴. مقایسه استان‌ها</h2><div id="provinceChart"></div></section>
-<section class="panel"><h2>۵. ده شهر با بیشترین رسوب</h2><div id="cityChart"></div></section>
-<section class="panel"><h2>۶. ده نود با بیشترین رسوب</h2><div id="nodeChart"></div></section>
-<section class="panel"><h2>۷. تحلیل نوع رسوب</h2><div id="typeChart"></div></section>
-<section class="panel"><h2>۸. تحلیل وضعیت رسوب</h2><div id="statusChart"></div></section>
-<section class="panel"><h2>۹. توزیع سن رسوب</h2><div id="ageChart"></div></section>
+<section class="panel"><h2>۵. مقایسه استان‌ها</h2><div id="provinceChart"></div></section>
+<section class="panel"><h2>۶. ده شهر با بیشترین رسوب</h2><div id="cityChart"></div></section>
+<section class="panel"><h2>۷. ده نود با بیشترین رسوب</h2><div id="nodeChart"></div></section>
+<section class="panel"><h2>۸. تحلیل نوع رسوب</h2><div id="typeChart"></div></section>
+<section class="panel"><h2>۹. تحلیل وضعیت رسوب</h2><div id="statusChart"></div></section>
+<section class="panel"><h2>۱۰. توزیع سنی بارهای رسوبی</h2><div id="ageChart"></div></section>
 </div>
 
 <section class="panel">
-<h2>۱۰. شهرها و نودهای نیازمند پیگیری</h2>
-<p class="note">رتبه‌بندی بر اساس تعداد ردیف‌هاست. مجموع روزهای رسوب و میانگین روزها نیز برای اولویت‌بندی بهتر ارائه می‌شود.</p>
+<h2>۱۱. رتبه‌بندی شهرها و نودهای نیازمند پیگیری</h2>
+<p class="note">رتبه‌بندی بر اساس تعداد ردیف‌ها انجام می‌شود. مجموع روزها، میانگین روزها و تعداد بارهای بحرانی نیز برای تعیین اولویت نمایش داده می‌شوند.</p>
 <div class="tablewrap"><table id="ranking"></table></div>
 </section>
 
 <section class="panel">
-<h2>۱۱. فهرست بارهای دارای بیشترین مدت رسوب</h2>
-<div class="tablewrap"><table id="priority"></table></div>
+<h2>۱۲. فهرست بارهای اولویت‌دار</h2>
+<div class="tablewrap"><table id="followup"></table></div>
 </section>
 
 <section class="panel">
-<h2>۱۲. اطلاعات بارها و جست‌وجو</h2>
+<h2>۱۳. جست‌وجو و مشاهده اطلاعات بارها</h2>
 <div class="tablewrap"><table id="details"></table></div>
 <p id="pageInfo" class="note"></p>
 </section>
 </div>
 </main>
-<footer>داشبورد مدیریتی تیپاکس | تحلیل محلی فایل اکسل</footer>
+<footer>داشبورد مدیریتی تیپاکس | نسخه مرورگری</footer>
 
 <script>
 let source=[],filtered=[],headers=[],keys={};
 
 const $=id=>document.getElementById(id);
-const faNum=n=>Number(n||0).toLocaleString('fa-IR',{maximumFractionDigits:2});
-function normalize(v){
+const fmt=n=>Number(n||0).toLocaleString('fa-IR',{maximumFractionDigits:2});
+
+function norm(v){
  return String(v??'').replace(/ي/g,'ی').replace(/ك/g,'ک')
  .replace(/[\u200c\s_ـ]/g,'').toLowerCase().trim();
 }
-function number(v){
+function num(v){
  if(typeof v==='number')return Number.isFinite(v)?v:0;
- let s=String(v??'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+ const s=String(v??'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
  .replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d))
  .replace(/[٬,]/g,'').trim();
  const n=parseFloat(s);return Number.isFinite(n)?n:0;
 }
-function clean(v){return String(v??'').trim()}
-function findColumn(names,contains=[]){
- for(const h of headers)if(names.some(n=>normalize(h)===normalize(n)))return h;
- for(const h of headers)if(contains.some(n=>normalize(h).includes(normalize(n))))return h;
- return '';
-}
-function msg(t,error=false){$('message').textContent=t;$('message').className='status '+(error?'bad':'good')}
-function html(v){
+function txt(v){return String(v??'').trim()}
+function safe(v){
  return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-function selectOptions(id,values,label){
+function findCol(exact,partial=[]){
+ for(const h of headers)if(exact.some(x=>norm(h)===norm(x)))return h;
+ for(const h of headers)if(partial.some(x=>norm(h).includes(norm(x))))return h;
+ return '';
+}
+function message(t,error=false){
+ $('message').textContent=t;
+ $('message').className='status '+(error?'bad':'good');
+}
+async function loadFile(){
+ const f=$('file').files[0];
+ if(!f){message('ابتدا فایل اکسل را انتخاب کنید.',true);return}
+ if(!window.XLSX){message('کتابخانه اکسل بارگذاری نشده؛ اتصال اینترنت را بررسی کنید.',true);return}
+ try{
+ message('در حال خواندن فایل...');
+ const buffer=await f.arrayBuffer();
+ const wb=f.name.toLowerCase().endsWith('.csv')
+ ?XLSX.read(new TextDecoder('utf-8').decode(buffer),{type:'string'})
+ :XLSX.read(buffer,{type:'array'});
+ const ws=wb.Sheets[wb.SheetNames[0]];
+ const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
+ if(!rows.length)throw Error('در برگه اول فایل داده‌ای وجود ندارد.');
+ headers=Object.keys(rows[0]);
+ keys.province=findCol(['استان رسوب'],['استانرسوب']);
+ keys.city=findCol(['شهر رسوب'],['شهررسوب']);
+ keys.node=findCol(['نود رسوب'],['نودرسوب']);
+ keys.days=findCol(['تعداد روزهای رسوب','روزهای رسوب'],['تعدادروزهایرسوب','روزهایرسوب']);
+ keys.type=findCol(['نوع رسوب'],['نوعرسوب']);
+ keys.status=findCol(['وضعیت رسوب'],['وضعیترسوب']);
+ keys.barcode=findCol(['بارکد','بارکد مرسوله'],['بارکد']);
+ keys.contract=findCol(['شماره قرارداد'],['شمارهقرارداد']);
+ keys.complaint=findCol(['COMPLAINTID'],['complaintid']);
+ keys.lastNode=findCol(['زمان آخرین نود'],['زمانآخریننود']);
+ keys.sla=findCol(['SLA','PLANSLA_NEW'],['sla']);
+ keys.receiver=findCol(['شهر گیرنده'],['شهرگیرنده']);
+ keys.sender=findCol(['شهر فرستنده'],['شهرفرستنده']);
+ if(!keys.province)throw Error('ستون «استان رسوب» پیدا نشد.');
+ if(!keys.days)throw Error('ستون «تعداد روزهای رسوب» پیدا نشد.');
+ source=rows.map((r,i)=>{
+ const p=txt(r[keys.province]).replace(/ي/g,'ی').replace(/ك/g,'ک');
+ const province=p.includes('خوزستان')?'خوزستان':p.includes('لرستان')?'لرستان':p||'نامشخص';
+ return {...r,__row:i+2,__province:province,__days:num(r[keys.days])};
+ });
+ $('app').classList.remove('hidden');
+ populateFilters();
+ render();
+ message('فایل با موفقیت خوانده شد: '+fmt(source.length)+' ردیف.');
+ }catch(e){message('خطا: '+e.message,true)}
+}
+function setSelect(id,values,label){
  const el=$(id),old=el.value;
  el.innerHTML='';
- const first=document.createElement('option');first.value='';first.textContent=label;el.appendChild(first);
- [...new Set(values.filter(v=>clean(v)!==''))].sort((a,b)=>String(a).localeCompare(String(b),'fa')).forEach(v=>{
+ const first=document.createElement('option');
+ first.value='';first.textContent=label;el.appendChild(first);
+ [...new Set(values.filter(v=>txt(v)!==''))].sort((a,b)=>String(a).localeCompare(String(b),'fa')).forEach(v=>{
  const o=document.createElement('option');o.value=v;o.textContent=v;el.appendChild(o);
  });
  if([...el.options].some(o=>o.value===old))el.value=old;
 }
-async function loadFile(){
- const f=$('file').files[0];
- if(!f){msg('ابتدا فایل اکسل را انتخاب کنید.',true);return}
- if(!window.XLSX){msg('کتابخانه اکسل بارگذاری نشده است؛ اینترنت را بررسی کنید.',true);return}
- try{
- msg('در حال خواندن فایل...');
- const buf=await f.arrayBuffer();
- const wb=f.name.toLowerCase().endsWith('.csv')
- ?XLSX.read(new TextDecoder('utf-8').decode(buf),{type:'string'})
- :XLSX.read(buf,{type:'array'});
- const ws=wb.Sheets[wb.SheetNames[0]];
- const data=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
- if(!data.length)throw Error('فایل خالی است یا داده‌ای در برگه اول وجود ندارد.');
- headers=Object.keys(data[0]);
- keys.province=findColumn(['استان رسوب'],['استانرسوب']);
- keys.city=findColumn(['شهر رسوب'],['شهررسوب']);
- keys.node=findColumn(['نود رسوب'],['نودرسوب']);
- keys.days=findColumn(['تعداد روزهای رسوب','روزهای رسوب'],['تعدادروزهایرسوب']);
- keys.type=findColumn(['نوع رسوب'],['نوعرسوب']);
- keys.status=findColumn(['وضعیت رسوب'],['وضعیترسوب']);
- keys.barcode=findColumn(['بارکد','بارکد مرسوله'],['بارکد']);
- keys.complaint=findColumn(['COMPLAINTID']);
- keys.lastNode=findColumn(['زمان آخرین نود']);
- keys.contract=findColumn(['شماره قرارداد']);
- keys.cod=findColumn(['COD']);
- keys.cash=findColumn(['مبلغ قرارداد']);
- keys.sender=findColumn(['شهر فرستنده']);
- keys.receiver=findColumn(['شهر گیرنده','شهر']);
- keys.sla=findColumn(['SLA']);
- if(!keys.province)throw Error('ستون «استان رسوب» پیدا نشد.');
- if(!keys.days)throw Error('ستون «تعداد روزهای رسوب» پیدا نشد.');
- source=data.map((r,i)=>{
- const p=clean(r[keys.province]).replace(/ي/g,'ی').replace(/ك/g,'ک');
- let province=p.includes('خوزستان')?'خوزستان':p.includes('لرستان')?'لرستان':p||'نامشخص';
- return {...r,__index:i+2,__province:province,__days:number(r[keys.days])};
- });
- $('app').classList.remove('hidden');
- populate();
- render();
- msg('فایل با موفقیت تحلیل شد: '+faNum(source.length)+' ردیف.');
- }catch(e){msg('خطا: '+e.message,true)}
+function populateFilters(){
+ setSelect('province',source.map(r=>r.__province),'همه استان‌ها');
+ setSelect('city',source.map(r=>txt(r[keys.city])),'همه شهرها');
+ setSelect('node',source.map(r=>txt(r[keys.node])),'همه نودها');
+ setSelect('type',keys.type?source.map(r=>txt(r[keys.type])):[],'همه انواع');
+ setSelect('status',keys.status?source.map(r=>txt(r[keys.status])):[],'همه وضعیت‌ها');
 }
-function populate(){
- selectOptions('province',source.map(r=>r.__province),'همه استان‌ها');
- selectOptions('city',source.map(r=>clean(r[keys.city])),'همه شهرها');
- selectOptions('node',source.map(r=>clean(r[keys.node])),'همه نودها');
- selectOptions('type',source.map(r=>clean(r[keys.type])),'همه انواع');
- selectOptions('status',source.map(r=>clean(r[keys.status])),'همه وضعیت‌ها');
+function thresholds(){
+ return {
+  critical:Math.max(1,num($('criticalDays').value)||30),
+  high:Math.max(0,num($('highDays').value)||14),
+  medium:Math.max(0,num($('mediumDays').value))
+ };
 }
-function ageBand(d){
- if(d<3)return 'کمتر از ۳ روز';
- if(d<7)return '۳ تا ۶ روز';
- if(d<15)return '۷ تا ۱۴ روز';
- if(d<=30)return '۱۵ تا ۳۰ روز';
- return 'بیش از ۳۰ روز';
+function level(days){
+ const t=thresholds();
+ if(days>t.critical)return 'بحرانی';
+ if(days>t.high)return 'بالا';
+ if(days>t.medium)return 'متوسط';
+ return 'عادی';
+}
+function ageBand(days){
+ const t=thresholds();
+ if(days>t.critical)return 'بحرانی';
+ if(days>t.high)return 'بالا';
+ if(days>t.medium)return 'متوسط';
+ return 'عادی';
+}
+function badge(level){
+ const c={'بحرانی':'b-critical','بالا':'b-high','متوسط':'b-medium','عادی':'b-normal'};
+ return '<span class="badge '+c[level]+'">'+level+'</span>';
 }
 function render(){
+ if(!source.length)return;
  const province=$('province').value,city=$('city').value,node=$('node').value;
- const type=$('type').value,status=$('status').value,age=$('age').value;
- const min=$('minDays').value,max=$('maxDays').value,search=normalize($('search').value);
+ const type=$('type').value,status=$('status').value,priority=$('priority').value;
+ const min=$('minDays').value,max=$('maxDays').value,search=norm($('search').value);
  filtered=source.filter(r=>{
- if(province&&r.__province!==province)return false;
- if(city&&clean(r[keys.city])!==city)return false;
- if(node&&clean(r[keys.node])!==node)return false;
- if(type&&clean(r[keys.type])!==type)return false;
- if(status&&clean(r[keys.status])!==status)return false;
- if(min!==''&&r.__days<number(min))return false;
- if(max!==''&&r.__days>number(max))return false;
- if(age!==''&&['0','1','2','3','4'][Number(age)]!==String(['0','1','2','3','4'][Number(age)]))return false;
- if(age!==''&&ageBand(r.__days)!==['کمتر از ۳ روز','۳ تا ۶ روز','۷ تا ۱۴ روز','۱۵ تا ۳۰ روز','بیش از ۳۰ روز'][Number(age)])return false;
- if(search&&!headers.some(h=>normalize(r[h]).includes(search)))return false;
- return true;
+  if(province&&r.__province!==province)return false;
+  if(city&&txt(r[keys.city])!==city)return false;
+  if(node&&txt(r[keys.node])!==node)return false;
+  if(type&&keys.type&&txt(r[keys.type])!==type)return false;
+  if(status&&keys.status&&txt(r[keys.status])!==status)return false;
+  if(min!==''&&r.__days<num(min))return false;
+  if(max!==''&&r.__days>num(max))return false;
+  if(priority&&level(r.__days)!==priority)return false;
+  if(search&&!headers.some(h=>norm(r[h]).includes(search)))return false;
+  return true;
  });
- const sum=filtered.reduce((a,r)=>a+r.__days,0);
- const maxd=filtered.reduce((a,r)=>Math.max(a,r.__days),0);
- const kh=filtered.filter(r=>r.__province==='خوزستان').length;
- const lo=filtered.filter(r=>r.__province==='لرستان').length;
- $('total').textContent=faNum(filtered.length);
- $('kh').textContent=faNum(kh);$('lo').textContent=faNum(lo);
- $('avg').textContent=faNum(filtered.length?sum/filtered.length:0);
- $('over7').textContent=faNum(filtered.filter(r=>r.__days>=7).length);
- $('over30').textContent=faNum(filtered.filter(r=>r.__days>30).length);
- $('sumDays').textContent=faNum(sum);$('maxDays').textContent=faNum(maxd);
- $('filterInfo').textContent='تعداد ردیف‌های فیلترشده: '+faNum(filtered.length);
- bars('provinceChart',group(filtered,r=>r.__province));
- bars('cityChart',group(filtered,r=>clean(r[keys.city])||'نامشخص').slice(0,10));
- bars('nodeChart',group(filtered,r=>clean(r[keys.node])||'نامشخص').slice(0,10));
- bars('typeChart',group(filtered,r=>clean(r[keys.type])||'نامشخص').slice(0,10));
- bars('statusChart',group(filtered,r=>clean(r[keys.status])||'نامشخص').slice(0,10));
- bars('ageChart',group(filtered,r=>ageBand(r.__days)));
- insights(filtered,sum);
- rankingTable(filtered);
- const pcols=[keys.barcode,keys.province,keys.city,keys.node,keys.days,keys.type,keys.status].filter(Boolean);
- table('priority',[...filtered].sort((a,b)=>b.__days-a.__days).slice(0,100),pcols);
- table('details',filtered.slice(0,100),headers);
- $('pageInfo').textContent='نمایش حداکثر ۱۰۰ ردیف از '+faNum(filtered.length)+' ردیف. خروجی اکسل شامل همه ردیف‌های فیلترشده است.';
+ updateDashboard();
 }
 function group(rows,fn){
  const m=new Map();
- rows.forEach(r=>{const k=fn(r);if(!m.has(k))m.set(k,{name:k,count:0,sum:0,max:0});const x=m.get(k);x.count++;x.sum+=r.__days;x.max=Math.max(x.max,r.__days)});
+ rows.forEach(r=>{
+  const name=fn(r)||'نامشخص';
+  if(!m.has(name))m.set(name,{name,count:0,sum:0,max:0,critical:0,high:0});
+  const x=m.get(name);x.count++;x.sum+=r.__days;x.max=Math.max(x.max,r.__days);
+  if(level(r.__days)==='بحرانی')x.critical++;
+  if(level(r.__days)==='بالا')x.high++;
+ });
  return [...m.values()].sort((a,b)=>b.count-a.count);
+}
+function updateDashboard(){
+ const rows=filtered,t=thresholds();
+ const sum=rows.reduce((a,r)=>a+r.__days,0);
+ const max=rows.reduce((a,r)=>Math.max(a,r.__days),0);
+ const kh=rows.filter(r=>r.__province==='خوزستان').length;
+ const lo=rows.filter(r=>r.__province==='لرستان').length;
+ $('mTotal').textContent=fmt(rows.length);
+ $('mKh').textContent=fmt(kh);$('mLo').textContent=fmt(lo);
+ $('mAvg').textContent=fmt(rows.length?sum/rows.length:0);
+ $('mCritical').textContent=fmt(rows.filter(r=>level(r.__days)==='بحرانی').length);
+ $('mHigh').textContent=fmt(rows.filter(r=>level(r.__days)==='بالا').length);
+ $('mMax').textContent=fmt(max);$('mSum').textContent=fmt(sum);
+ $('filterInfo').textContent='تعداد ردیف‌های منطبق با فیلترها: '+fmt(rows.length);
+ bars('provinceChart',group(rows,r=>r.__province));
+ bars('cityChart',group(rows,r=>txt(r[keys.city])).slice(0,10));
+ bars('nodeChart',group(rows,r=>txt(r[keys.node])).slice(0,10));
+ bars('typeChart',keys.type?group(rows,r=>txt(r[keys.type])).slice(0,10):[]);
+ bars('statusChart',keys.status?group(rows,r=>txt(r[keys.status])).slice(0,10):[]);
+ bars('ageChart',group(rows,r=>ageBand(r.__days)));
+ renderInsights(rows,sum,t);
+ renderRanking(rows);
+ const cols=unique([keys.barcode,keys.province,keys.city,keys.node,keys.days,keys.type,keys.status,keys.lastNode,keys.sla].filter(Boolean));
+ const priorityRows=[...rows].sort((a,b)=>b.__days-a.__days);
+ table('followup',priorityRows.slice(0,150),cols,true);
+ table('details',rows.slice(0,100),headers,false);
+ $('pageInfo').textContent='نمایش '+fmt(Math.min(rows.length,100))+' ردیف از '+fmt(rows.length)+'. خروجی اکسل شامل تمام ردیف‌های منطبق است.';
 }
 function bars(id,items){
  const el=$(id);
- if(!items.length){el.innerHTML='<p class="note">داده‌ای برای نمایش وجود ندارد.</p>';return}
+ if(!items.length){el.innerHTML='<p class="note">ستون مربوطه پیدا نشد یا داده‌ای برای نمایش نیست.</p>';return}
  const max=Math.max(...items.map(x=>x.count),1);
- el.innerHTML=items.map(x=>`<div class="baritem">
- <div class="barlabel"><span>${html(x.name)}</span><b>${faNum(x.count)} ردیف</b></div>
+ el.innerHTML=items.map(x=>`
+ <div class="baritem">
+ <div class="barhead"><span>${safe(x.name)}</span><b>${fmt(x.count)} ردیف</b></div>
  <div class="barbg"><div class="barfill" style="width:${Math.max(1,x.count/max*100)}%"></div></div>
- <div class="note">سهم: ${faNum(x.count/(filtered.length||1)*100)}٪ | مجموع روز: ${faNum(x.sum)} | میانگین روز: ${faNum(x.sum/x.count)}</div>
+ <div class="note">سهم از ردیف‌های فیلترشده: ${fmt(x.count/(filtered.length||1)*100)}٪ | مجموع روز: ${fmt(x.sum)} | میانگین: ${fmt(x.sum/x.count)} روز | بحرانی: ${fmt(x.critical)}</div>
  </div>`).join('');
 }
-function insights(rows,sum){
+function renderInsights(rows,sum,t){
  if(!rows.length){$('insights').textContent='هیچ ردیفی با فیلترهای فعلی مطابقت ندارد.';return}
- const cities=group(rows,r=>clean(r[keys.city])||'نامشخص');
- const nodes=group(rows,r=>clean(r[keys.node])||'نامشخص');
+ const cities=group(rows,r=>txt(r[keys.city]));
+ const nodes=group(rows,r=>txt(r[keys.node]));
  const oldest=[...rows].sort((a,b)=>b.__days-a.__days)[0];
- const old=rows.filter(r=>r.__days>30).length;
- const seven=rows.filter(r=>r.__days>=7).length;
+ const critical=rows.filter(r=>level(r.__days)==='بحرانی').length;
+ const high=rows.filter(r=>level(r.__days)==='بالا').length;
  $('insights').innerHTML=`
- <p>• <b>شهر دارای بیشترین ردیف:</b> ${html(cities[0]?.name||'نامشخص')} (${faNum(cities[0]?.count||0)} ردیف)</p>
- <p>• <b>نود دارای بیشترین ردیف:</b> ${html(nodes[0]?.name||'نامشخص')} (${faNum(nodes[0]?.count||0)} ردیف)</p>
- <p>• <b>بارهای با رسوب بیش از ۷ روز:</b> ${faNum(seven)} ردیف، معادل ${faNum(seven/rows.length*100)}٪</p>
- <p>• <b>بارهای با رسوب بیش از ۳۰ روز:</b> ${faNum(old)} ردیف، معادل ${faNum(old/rows.length*100)}٪</p>
- <p>• <b>قدیمی‌ترین بار در داده‌های فیلترشده:</b> ${html(keys.barcode?oldest[keys.barcode]:'')} | ${faNum(oldest.__days)} روز | شهر: ${html(keys.city?oldest[keys.city]:'')} | نود: ${html(keys.node?oldest[keys.node]:'')}</p>
- <p>• <b>مجموع روزهای رسوب:</b> ${faNum(sum)} روز. این شاخص مجموع سن رسوب ردیف‌هاست و تعداد مرسوله‌های یکتا را نشان نمی‌دهد.</p>`;
+ <p>• تعداد ردیف‌های بررسی‌شده: <b>${fmt(rows.length)}</b></p>
+ <p>• ردیف‌های بحرانی (بیش از ${fmt(t.critical)} روز): <b>${fmt(critical)}</b>؛ معادل ${fmt(critical/rows.length*100)}٪.</p>
+ <p>• ردیف‌های اولویت بالا (بیش از ${fmt(t.high)} روز و در محدوده بحرانی نیستند): <b>${fmt(high)}</b>.</p>
+ <p>• شهر دارای بیشترین ردیف: <b>${safe(cities[0]?.name||'نامشخص')}</b>، ${fmt(cities[0]?.count||0)} ردیف.</p>
+ <p>• نود دارای بیشترین ردیف: <b>${safe(nodes[0]?.name||'نامشخص')}</b>، ${fmt(nodes[0]?.count||0)} ردیف.</p>
+ <p>• قدیمی‌ترین بار در داده‌های فیلترشده: <b>${safe(keys.barcode?oldest[keys.barcode]:'')}</b>، ${fmt(oldest.__days)} روز، استان ${safe(oldest.__province)}، شهر ${safe(keys.city?oldest[keys.city]:'')}.</p>
+ <p>• مجموع روزهای رسوب: <b>${fmt(sum)}</b>. این عدد جمع سن رسوب ردیف‌هاست؛ لزوماً تعداد مرسوله‌های یکتا نیست.</p>`;
 }
-function rankingTable(rows){
- const cities=group(rows,r=>clean(r[keys.city])||'نامشخص').slice(0,20);
- const nodes=group(rows,r=>clean(r[keys.node])||'نامشخص').slice(0,20);
- const data=[...cities.map(x=>({...x,kind:'شهر'})),...nodes.map(x=>({...x,kind:'نود'}))];
- $('ranking').innerHTML='<thead><tr><th>نوع</th><th>نام</th><th>تعداد ردیف</th><th>مجموع روز رسوب</th><th>میانگین روز</th><th>بیشترین روز</th></tr></thead><tbody>'+
- data.map(x=>`<tr><td>${x.kind}</td><td>${html(x.name)}</td><td>${faNum(x.count)}</td><td>${faNum(x.sum)}</td><td>${faNum(x.sum/x.count)}</td><td>${faNum(x.max)}</td></tr>`).join('')+'</tbody>';
+function renderRanking(rows){
+ const city=group(rows,r=>txt(r[keys.city])||'نامشخص').slice(0,20).map(x=>({...x,kind:'شهر'}));
+ const node=group(rows,r=>txt(r[keys.node])||'نامشخص').slice(0,20).map(x=>({...x,kind:'نود'}));
+ const all=[...city,...node];
+ $('ranking').innerHTML='<thead><tr><th>نوع</th><th>نام</th><th>تعداد ردیف</th><th>مجموع روز</th><th>میانگین روز</th><th>بیشترین روز</th><th>بحرانی</th><th>بالا</th></tr></thead><tbody>'+
+ all.map(x=>`<tr><td>${x.kind}</td><td>${safe(x.name)}</td><td>${fmt(x.count)}</td><td>${fmt(x.sum)}</td><td>${fmt(x.sum/x.count)}</td><td>${fmt(x.max)}</td><td>${fmt(x.critical)}</td><td>${fmt(x.high)}</td></tr>`).join('')+'</tbody>';
 }
-function table(id,rows,cols){
+function unique(a){return [...new Set(a)]}
+function table(id,rows,cols,withLevel){
  const el=$(id);
- if(!rows.length){el.innerHTML='<tbody><tr><td>داده‌ای موجود نیست.</td></tr></tbody>';return}
- el.innerHTML='<thead><tr>'+cols.map(c=>'<th>'+html(c)+'</th>').join('')+'</tr></thead><tbody>'+
- rows.map(r=>'<tr>'+cols.map(c=>'<td>'+html(c===keys.days?r.__days:r[c])+'</td>').join('')+'</tr>').join('')+'</tbody>';
+ if(!rows.length){el.innerHTML='<tbody><tr><td>داده‌ای برای نمایش وجود ندارد.</td></tr></tbody>';return}
+ let useCols=cols.filter(c=>c!=='__row');
+ let finalCols=withLevel?['سطح پیگیری',...useCols]:useCols;
+ el.innerHTML='<thead><tr>'+finalCols.map(c=>'<th>'+safe(c)+'</th>').join('')+'</tr></thead><tbody>'+
+ rows.map(r=>'<tr>'+finalCols.map(c=>{
+ if(c==='سطح پیگیری')return '<td>'+badge(level(r.__days))+'</td>';
+ if(c===keys.days)return '<td>'+fmt(r.__days)+'</td>';
+ return '<td>'+safe(r[c])+'</td>';
+ }).join('')+'</tr>').join('')+'</tbody>';
 }
-function resetFilters(){
- ['province','city','node','type','status','age','minDays','maxDays','search'].forEach(id=>$(id).value='');
- render();
-}
-function exportRows(){
- exportExcel(filtered,'Tipax_Residue_Filtered.xlsx');
-}
-function exportPriority(){
- const rows=[...filtered].sort((a,b)=>b.__days-a.__days);
- exportExcel(rows,'Tipax_Residue_Followup.xlsx');
-}
-function exportExcel(rows,name){
+function exportWorkbook(rows,filename){
  if(!rows.length){alert('داده‌ای برای خروجی وجود ندارد.');return}
  if(!window.XLSX){alert('کتابخانه اکسل بارگذاری نشده است.');return}
- const cleanRows=rows.map(r=>{const o={};headers.forEach(h=>o[h]=r[h]);return o});
+ const data=rows.map(r=>{
+ const o={};
+ headers.forEach(h=>o[h]=r[h]);
+ o['سطح پیگیری']=level(r.__days);
+ return o;
+ });
  const wb=XLSX.utils.book_new();
- XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(cleanRows),'گزارش رسوب');
- XLSX.writeFile(wb,name);
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(data),'اطلاعات رسوب');
+ XLSX.writeFile(wb,filename);
 }
-['province','city','node','type','status','age'].forEach(id=>$(id).addEventListener('change',render));
+function exportFiltered(){exportWorkbook(filtered,'Tipax_Residue_Filtered.xlsx')}
+function exportFollowup(){
+ const rows=[...filtered].sort((a,b)=>b.__days-a.__days);
+ exportWorkbook(rows,'Tipax_Residue_Followup.xlsx');
+}
+function exportReport(){
+ if(!filtered.length){alert('داده‌ای برای گزارش وجود ندارد.');return}
+ const wb=XLSX.utils.book_new();
+ const total=filtered.length,sum=filtered.reduce((a,r)=>a+r.__days,0);
+ const summary=[
+ ['عنوان','مقدار'],
+ ['تاریخ تهیه گزارش',new Date().toLocaleString('fa-IR')],
+ ['تعداد کل ردیف‌ها',total],
+ ['ردیف‌های خوزستان',filtered.filter(r=>r.__province==='خوزستان').length],
+ ['ردیف‌های لرستان',filtered.filter(r=>r.__province==='لرستان').length],
+ ['مجموع روزهای رسوب',sum],
+ ['میانگین روزهای رسوب',total?sum/total:0],
+ ['بارهای بحرانی',filtered.filter(r=>level(r.__days)==='بحرانی').length],
+ ['بارهای اولویت بالا',filtered.filter(r=>level(r.__days)==='بالا').length]
+ ];
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(summary),'خلاصه مدیریتی');
+ const addGroup=(name,fn)=>{
+ const g=group(filtered,fn);
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(g.map(x=>({
+ [name]:x.name,'تعداد ردیف':x.count,'مجموع روز رسوب':x.sum,
+ 'میانگین روز رسوب':x.sum/x.count,'بیشترین روز':x.max,
+ 'بار بحرانی':x.critical,'اولویت بالا':x.high
+ }))),name);
+ };
+ addGroup('تحلیل شهرها',r=>txt(r[keys.city])||'نامشخص');
+ addGroup('تحلیل نودها',r=>txt(r[keys.node])||'نامشخص');
+ const priority=[...filtered].sort((a,b)=>b.__days-a.__days);
+ const follow=priority.map(r=>{
+ const o={'سطح پیگیری':level(r.__days),'روز رسوب':r.__days};
+ headers.forEach(h=>o[h]=r[h]);return o;
+ });
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(follow),'فهرست پیگیری');
+ XLSX.writeFile(wb,'Tipax_Management_Report.xlsx');
+}
+function resetFilters(){
+ ['province','city','node','type','status','priority','minDays','maxDays','search'].forEach(id=>$(id).value='');
+ render();
+}
+['province','city','node','type','status','priority'].forEach(id=>$(id).addEventListener('change',render));
 ['minDays','maxDays','search'].forEach(id=>$(id).addEventListener('input',render));
 </script>
 </body>
