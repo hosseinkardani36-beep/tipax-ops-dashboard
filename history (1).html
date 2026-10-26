@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تاریخچه رسوب تیپاکس</title>
+<style>
+body{font-family:Tahoma,sans-serif;max-width:900px;margin:20px auto;padding:0 12px;background:#f5f6f8;color:#222}
+.card{background:#fff;border-radius:10px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px #0002}
+input,button{font:inherit;padding:8px;margin:4px 0}
+button{cursor:pointer;background:#e4002b;color:#fff;border:0;border-radius:6px;padding:8px 14px}
+button.sec{background:#555}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{border:1px solid #ddd;padding:6px;text-align:center}
+th{background:#eee}
+.msg{color:#a00;min-height:1.4em}
+.hide{display:none}
+</style>
+</head>
+<body>
+<h2>تاریخچه رسوب تیپاکس (خوزستان و لرستان)</h2>
+<div class="msg" id="msg"></div>
+
+<div class="card" id="authBox">
+  <h3>ورود / ثبت‌نام</h3>
+  <input id="email" type="email" placeholder="ایمیل" dir="ltr"><br>
+  <input id="pass" type="password" placeholder="رمز عبور (حداقل ۸ کاراکتر)" dir="ltr"><br>
+  <button id="btnLogin">ورود</button>
+  <button class="sec" id="btnSignup">ثبت‌نام</button>
+</div>
+
+<div class="card hide" id="userBox">
+  <span id="who"></span>
+  <button class="sec" id="btnLogout">خروج</button>
+</div>
+
+<div class="card hide" id="pendingBox">حساب شما هنوز توسط مالک تأیید نشده است.</div>
+
+<div class="card hide" id="uploadBox">
+  <h3>ثبت خلاصه‌ی رسوب امروز</h3>
+  <p>فقط خلاصه‌ی تجمیعی (استان، شهر، نود) ذخیره می‌شود؛ ردیف‌های بارکد‌دار هرگز آپلود نمی‌شوند.</p>
+  <input type="file" id="file" accept=".xlsx,.xls"><br>
+  تاریخ: <input type="date" id="date"><br>
+  آستانه‌ها (روز): بحرانی بیش از <input id="tc" type="number" value="30" style="width:60px">
+  بالا بیش از <input id="th" type="number" value="14" style="width:60px">
+  متوسط بیش از <input id="tm" type="number" value="6" style="width:60px"><br>
+  <button id="btnSave">محاسبه و ذخیره</button>
+</div>
+
+<div class="card hide" id="listBox">
+  <h3>تاریخچه‌ی ثبت‌شده</h3>
+  <table><thead><tr><th>تاریخ</th><th>استان</th><th>تعداد</th><th>میانگین روز</th><th>بیشترین روز</th><th>بحرانی</th><th>اولویت بالا</th></tr></thead>
+  <tbody id="rows"></tbody></table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const SB_URL = "https://fywshcokzptflfhtdjoz.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ5d3NoY29renB0ZmxmaHRkam96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5Njc2MTAsImV4cCI6MjEwODU0MzYxMH0.XnjY6WGWpl9t7HHWwhq3bLU_LQLtjzeKN_HFZMrNXz8"; // anon key: public by design, protected by RLS
+const sb = supabase.createClient(SB_URL, SB_KEY);
+const $ = id => document.getElementById(id);
+const say = t => $("msg").textContent = t || "";
+let profile = null;
+
+async function refresh(){
+  say("");
+  const { data:{ session } } = await sb.auth.getSession();
+  ["authBox","userBox","pendingBox","uploadBox","listBox"].forEach(i=>$(i).classList.add("hide"));
+  if(!session){ $("authBox").classList.remove("hide"); return; }
+  const { data, error } = await sb.from("profiles").select("*").eq("id", session.user.id).single();
+  if(error){ say("خطا در خواندن پروفایل: "+error.message); return; }
+  profile = data;
+  $("who").textContent = profile.email + " — نقش: " + profile.role;
+  $("userBox").classList.remove("hide");
+  if(!profile.approved){ $("pendingBox").classList.remove("hide"); return; }
+  if(profile.role==="owner"||profile.role==="admin") $("uploadBox").classList.remove("hide");
+  $("listBox").classList.remove("hide");
+  loadList();
+}
+
+async function loadList(){
+  const { data, error } = await sb.from("snapshot_totals").select("*").order("snapshot_date",{ascending:false}).limit(60);
+  if(error){ say(error.message); return; }
+  const tb = $("rows"); tb.textContent = "";
+  data.forEach(r=>{
+    const tr = document.createElement("tr");
+    [r.snapshot_date, r.province, r.row_count, r.avg_days, r.max_days, r.critical_count, r.high_count]
+      .forEach(v=>{ const td=document.createElement("td"); td.textContent = v ?? ""; tr.appendChild(td); });
+    tb.appendChild(tr);
+  });
+}
+
+$("btnLogin").onclick = async ()=>{
+  const { error } = await sb.auth.signInWithPassword({ email:$("email").value.trim(), password:$("pass").value });
+  if(error) say(error.message); else refresh();
+};
+$("btnSignup").onclick = async ()=>{
+  const { error } = await sb.auth.signUp({ email:$("email").value.trim(), password:$("pass").value });
+  if(error) say(error.message); else say("ثبت‌نام انجام شد. اگر ایمیل تأیید آمد تأیید کنید، سپس وارد شوید؛ دسترسی بعد از تأیید مالک فعال می‌شود.");
+};
+$("btnLogout").onclick = async ()=>{ await sb.auth.signOut(); refresh(); };
+
+$("btnSave").onclick = async ()=>{
+  const f = $("file").files[0], date = $("date").value;
+  if(!f||!date){ say("فایل و تاریخ را انتخاب کنید."); return; }
+  const tc=+$("tc").value, th=+$("th").value, tm=+$("tm").value;
+  say("در حال پردازش...");
+  const wb = XLSX.read(await f.arrayBuffer(), {type:"array"});
+  const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""});
+  const need = ["استان رسوب","شهر رسوب","نود رسوب","تعداد روزهای رسوب"];
+  if(!rows.length || need.some(c=>!(c in rows[0]))){ say("ستون‌های لازم در فایل پیدا نشد: "+need.join("، ")); return; }
+  const agg = {}; let used=0, skipped=0;
+  rows.forEach(r=>{
+    const p = String(r["استان رسوب"]).trim(), c = String(r["شهر رسوب"]).trim(), n = String(r["نود رسوب"]).trim();
+    if(!(p.includes("خوزستان")||p.includes("لرستان"))){ skipped++; return; }
+    used++;
+    const d = Number(r["تعداد روزهای رسوب"])||0;
+    [["province",p,null,null],["city",p,c,null],["node",p,c,n]].forEach(([lv,pp,cc,nn])=>{
+      const k = lv+"|"+pp+"|"+(cc||"")+"|"+(nn||"");
+      const a = agg[k] || (agg[k]={level:lv,province:pp,city:cc,node:nn,row_count:0,total_days:0,max_days:0,critical_count:0,high_count:0});
+      a.row_count++; a.total_days+=d; if(d>a.max_days)a.max_days=d;
+      if(d>tc)a.critical_count++; else if(d>th)a.high_count++;
+    });
+  });
+  if(!used){ say("هیچ ردیفی از خوزستان یا لرستان پیدا نشد."); return; }
+  const { data:snap, error:e1 } = await sb.from("snapshots").insert({
+    snapshot_date:date, source_file_name:f.name, row_count:used, critical_days:tc, high_days:th, medium_days:tm
+  }).select("id").single();
+  if(e1){ say("خطا در ذخیره: "+e1.message); return; }
+  const list = Object.values(agg).map(a=>({...a, snapshot_id:snap.id}));
+  for(let i=0;i<list.length;i+=500){
+    const { error } = await sb.from("snapshot_stats").insert(list.slice(i,i+500));
+    if(error){ say("خطا در ذخیره‌ی آمار: "+error.message); return; }
+  }
+  say(`ذخیره شد: ${used} ردیف استفاده شد، ${skipped} ردیف خارج از خوزستان/لرستان نادیده گرفته شد.`);
+  loadList();
+};
+
+refresh();
+</script>
+</body>
+</html>
