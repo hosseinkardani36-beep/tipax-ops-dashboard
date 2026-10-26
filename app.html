@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>داشبورد عملیات تیپاکس — خوزستان و لرستان</title>
+<style>
+body{font-family:Tahoma,sans-serif;max-width:1100px;margin:16px auto;padding:0 10px;background:#f5f6f8;color:#222}
+.card{background:#fff;border-radius:10px;padding:14px;margin-bottom:12px;box-shadow:0 1px 4px #0002}
+input,select,button{font:inherit;padding:7px;margin:3px}
+button{cursor:pointer;background:#e4002b;color:#fff;border:0;border-radius:6px;padding:7px 14px}
+button.sec{background:#555}
+.msg{color:#a00;min-height:1.3em}.hide{display:none}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;font-size:13px;direction:ltr;min-width:100%}
+th,td{border:1px solid #ccc;padding:4px 8px;text-align:center;white-space:nowrap}
+th{background:#1e6b2e;color:#fff}
+td.n{font-weight:bold;text-align:right;direction:rtl}
+.note{display:block;font-size:11px;color:#06c;font-weight:normal;white-space:normal;max-width:170px}
+#fp{position:absolute;z-index:20;background:#fff;border:1px solid #999;border-radius:8px;padding:8px;width:240px;box-shadow:0 4px 14px #0004;direction:rtl;font-size:13px}
+#fp button{width:100%;margin:2px 0}#fp input[type=text]{width:100%;box-sizing:border-box}
+#fp .lst{max-height:200px;overflow:auto;border:1px solid #ddd;margin:4px 0;padding:2px}
+#fp label{display:block;white-space:nowrap}
+.fb{background:none;border:0;color:#fff;padding:0 3px;margin:0;font-size:12px;cursor:pointer}
+.fb.on{color:#ff0}
+
+.tabs{margin-bottom:10px}.tab{background:#ddd;color:#222;margin:2px}.tab.on{background:#e4002b;color:#fff}
+a.lnk{color:#06c;margin-right:10px;font-size:13px}
+.card input[type=text]{padding:6px}
+</style>
+</head>
+<body>
+<h2>داشبورد عملیات تیپاکس (خوزستان و لرستان)</h2>
+<div class="msg" id="msg"></div>
+
+<div class="card" id="authBox">
+  <h3>ورود / ثبت‌نام</h3>
+  <input id="email" type="email" placeholder="ایمیل" dir="ltr">
+  <input id="pass" type="password" placeholder="رمز عبور (حداقل ۸ کاراکتر)" dir="ltr"><br>
+  <button id="btnLogin">ورود</button> <button class="sec" id="btnSignup">ثبت‌نام</button>
+</div>
+<div class="card hide" id="userBox"><span id="who"></span> <button class="sec" id="btnLogout">خروج</button> <a class="lnk" href="index.html">داشبورد تحلیلی قبلی</a></div>
+<div class="card hide" id="pendingBox">حساب شما هنوز توسط مالک تأیید نشده است.</div>
+
+<div id="app" class="hide">
+  <div class="tabs">
+    <button class="tab on" data-t="rusub">رسوب</button>
+    <button class="tab" data-t="debt">بدهی نمایندگان</button>
+    <button class="tab hide" id="tabUsers" data-t="users">کاربران</button>
+  </div>
+  <section id="t-rusub">
+<div class="card hide" id="uploadBox">
+  <h3>ثبت گزارش رسوب یک تاریخ</h3>
+  <p>فقط خلاصه‌ی تجمیعی (استان، شهر، نود) ذخیره می‌شود؛ ردیف‌های بارکد‌دار هرگز آپلود نمی‌شوند.</p>
+  <input type="file" id="file" accept=".xlsx,.xls"><br>
+  تاریخ شمسی: <input id="jdate1" placeholder="1405/08/02" dir="ltr" style="width:110px"><br>
+  آستانه‌ها (روز): بحرانی بیش از <input id="tc" type="number" value="30" style="width:60px">
+  بالا بیش از <input id="th" type="number" value="14" style="width:60px">
+  متوسط بیش از <input id="tm" type="number" value="6" style="width:60px"><br>
+  <button id="btnSave">محاسبه و ذخیره</button>
+</div>
+
+<div class="card hide" id="listBox">
+  <h3>تاریخچه‌ی ثبت‌شده</h3>
+  <table><thead><tr><th>تاریخ</th><th>استان</th><th>تعداد</th><th>میانگین روز</th><th>بیشترین روز</th><th>بحرانی</th><th>اولویت بالا</th></tr></thead>
+  <tbody id="rows"></tbody></table>
+</div>
+
+<div class="card hide" id="detailBox">
+  <h3>ریز شهر و نود و مقایسه</h3>
+  سطح: <select id="lvl"><option value="province">استان</option><option value="city">شهر</option><option value="node" selected>نود</option></select>
+  تاریخ جدید: <select id="dA"></select>
+  مقایسه با: <select id="dB"></select>
+  <button id="btnDetail">نمایش</button>
+  <div style="overflow-x:auto"><table><thead><tr><th>استان</th><th>شهر</th><th>نود</th><th>تعداد</th><th>تغییر تعداد</th><th>میانگین روز</th><th>بیشترین روز</th><th>بحرانی</th><th>تغییر بحرانی</th></tr></thead>
+  <tbody id="drows"></tbody></table></div>
+</div>
+
+
+  </section>
+  <section id="t-debt" class="hide">
+<div class="card hide" id="dUploadBox">
+  <b>ثبت گزارش بدهی یک تاریخ</b><br>
+  <input type="file" id="dFile" accept=".xlsx,.xls">
+  تاریخ شمسی: <input id="jdate" placeholder="1405/08/02" dir="ltr" style="width:110px">
+  <button id="dBtnSave">ذخیره</button>
+  <div style="font-size:12px;color:#666">فقط نام نود، استان، وضعیت و سه ستون مانده ذخیره می‌شود؛ نام مدیر و شماره تماس هرگز.</div>
+</div>
+
+<div class="card hide" id="viewBox">
+  حداقل مانده: <input id="minv" value="100000000" dir="ltr" style="width:120px">
+  استان: <select id="prov"><option value="">همه</option><option>خوزستان</option><option>لرستان</option></select>
+  حذف نودها (با ویرگول): <input id="excl" value="هاب اهواز (تی هاب)" style="width:230px">
+  <button id="btnShow">نمایش</button> <button class="sec" id="btnClear">پاک کردن فیلترهای ستون‌ها</button>
+  <span style="font-size:12px;color:#666">مقادیر مطابق فایل (ستون «مانده»)</span>
+</div>
+
+<div class="card hide" id="noteBox">
+  <b>یادداشت پیگیری</b>
+  نود: <input id="nnode" list="nodes" style="width:230px"><datalist id="nodes"></datalist>
+  تاریخ شمسی: <input id="ndate" placeholder="1405/08/05" dir="ltr" style="width:110px">
+  متن: <input id="ntext" placeholder="واریز ... تومان" style="width:240px">
+  <button id="btnNote">ثبت یادداشت</button>
+</div>
+
+<div class="card wrap hide" id="matBox"><table><thead id="mh"></thead><tbody id="mb"></tbody></table></div>
+
+
+  </section>
+  <section id="t-users" class="hide">
+    <div class="card wrap"><h3>مدیریت کاربران</h3>
+      <table style="direction:rtl"><thead><tr><th>ایمیل</th><th>نقش</th><th>تأییدشده</th><th></th><th>تاریخ ثبت‌نام</th></tr></thead><tbody id="ub"></tbody></table>
+      <div style="font-size:12px;color:#666">owner: همه‌کار. admin: ثبت گزارش و یادداشت. guest: فقط مشاهده. نقش خودتان قابل تغییر نیست.</div>
+    </div>
+  </section>
+</div>
+
+<div id="fp" class="hide"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const sb = supabase.createClient("https://fywshcokzptflfhtdjoz.supabase.co",
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ5d3NoY29renB0ZmxmaHRkam96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5Njc2MTAsImV4cCI6MjEwODU0MzYxMH0.XnjY6WGWpl9t7HHWwhq3bLU_LQLtjzeKN_HFZMrNXz8");
+const $ = id => document.getElementById(id);
+const say = t => $("msg").textContent = t || "";
+let profile = null;
+// --- Jalali helpers ---
+function j2g(jy,jm,jd){jy+=1595;let days=-355668+(365*jy)+(~~(jy/33))*8+~~(((jy%33)+3)/4)+jd+((jm<7)?(jm-1)*31:((jm-7)*30)+186);let gy=400*~~(days/146097);days%=146097;if(days>36524){gy+=100*~~(--days/36524);days%=36524;if(days>=365)days++;}gy+=4*~~(days/1461);days%=1461;if(days>365){gy+=~~((days-1)/365);days=(days-1)%365;}let gd=days+1;const sal=[0,31,((gy%4==0&&gy%100!=0)||(gy%400==0))?29:28,31,30,31,30,31,31,30,31,30,31];let gm;for(gm=0;gm<13&&gd>sal[gm];gm++)gd-=sal[gm];return [gy,gm,gd];}
+function toIso(j){
+  const s=String(j).replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).trim();
+  const m=s.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/); if(!m) return null;
+  const [a,b,c]=[+m[1],+m[2],+m[3]]; if(b<1||b>12||c<1||c>31) return null;
+  const g=j2g(a,b,c); return g[0]+"-"+String(g[1]).padStart(2,"0")+"-"+String(g[2]).padStart(2,"0");
+}
+function toJ(iso){
+  const o={}; new Intl.DateTimeFormat("en-US-u-ca-persian",{year:"numeric",month:"2-digit",day:"2-digit",timeZone:"UTC"})
+    .formatToParts(new Date(iso+"T00:00:00Z")).forEach(x=>o[x.type]=x.value);
+  return o.year.replace(/\D/g,"")+"/"+o.month+"/"+o.day;
+}
+const fmt = v => v<0 ? "("+Math.abs(v).toLocaleString("en-US")+")" : v.toLocaleString("en-US");
+
+
+// --- rusub ---
+async function loadList(){
+  const { data, error } = await sb.from("snapshot_totals").select("*").order("snapshot_date",{ascending:false}).limit(60);
+  if(error){ say(error.message); return; }
+  const tb = $("rows"); tb.textContent = "";
+  initDetail();
+  data.forEach(r=>{
+    const tr = document.createElement("tr");
+    [toJ(r.snapshot_date), r.province, r.row_count, r.avg_days, r.max_days, r.critical_count, r.high_count]
+      .forEach(v=>{ const td=document.createElement("td"); td.textContent = v ?? ""; tr.appendChild(td); });
+    tb.appendChild(tr);
+  });
+}
+
+$("btnSave").onclick = async ()=>{
+  const f = $("file").files[0], date = toIso($("jdate1").value);
+  if(!f||!date){ say("فایل را انتخاب کنید و تاریخ شمسی را به شکل 1405/08/02 بنویسید."); return; }
+  const tc=+$("tc").value, th=+$("th").value, tm=+$("tm").value;
+  say("در حال پردازش...");
+  const wb = XLSX.read(await f.arrayBuffer(), {type:"array"});
+  const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""});
+  const need = ["استان رسوب","شهر رسوب","نود رسوب","تعداد روزهای رسوب"];
+  if(!rows.length || need.some(c=>!(c in rows[0]))){ say("ستون‌های لازم در فایل پیدا نشد: "+need.join("، ")); return; }
+  const agg = {}; let used=0, skipped=0;
+  rows.forEach(r=>{
+    const p = String(r["استان رسوب"]).trim(), c = String(r["شهر رسوب"]).trim(), n = String(r["نود رسوب"]).trim();
+    if(!(p.includes("خوزستان")||p.includes("لرستان"))){ skipped++; return; }
+    used++;
+    const d = Number(r["تعداد روزهای رسوب"])||0;
+    [["province",p,null,null],["city",p,c,null],["node",p,c,n]].forEach(([lv,pp,cc,nn])=>{
+      const k = lv+"|"+pp+"|"+(cc||"")+"|"+(nn||"");
+      const a = agg[k] || (agg[k]={level:lv,province:pp,city:cc,node:nn,row_count:0,total_days:0,max_days:0,critical_count:0,high_count:0});
+      a.row_count++; a.total_days+=d; if(d>a.max_days)a.max_days=d;
+      if(d>tc)a.critical_count++; else if(d>th)a.high_count++;
+    });
+  });
+  if(!used){ say("هیچ ردیفی از خوزستان یا لرستان پیدا نشد."); return; }
+  const { data:ex } = await sb.from("snapshots").select("id").eq("snapshot_date",date);
+  if(ex && ex.length){
+    if(profile.role!=="owner"){ say("برای این تاریخ قبلاً ثبت شده؛ فقط مالک می‌تواند جایگزین کند."); return; }
+    if(!confirm("برای این تاریخ قبلاً ثبت وجود دارد. جایگزین شود؟")) { say(""); return; }
+    const { error:ed } = await sb.from("snapshots").delete().eq("id",ex[0].id);
+    if(ed){ say("خطا در حذف ثبت قبلی: "+ed.message); return; }
+  }
+  const { data:snap, error:e1 } = await sb.from("snapshots").insert({
+    snapshot_date:date, source_file_name:f.name, row_count:used, critical_days:tc, high_days:th, medium_days:tm
+  }).select("id").single();
+  if(e1){ say("خطا در ذخیره: "+e1.message); return; }
+  const list = Object.values(agg).map(a=>({...a, snapshot_id:snap.id}));
+  for(let i=0;i<list.length;i+=500){
+    const { error } = await sb.from("snapshot_stats").insert(list.slice(i,i+500));
+    if(error){ say("خطا در ذخیره‌ی آمار: "+error.message); return; }
+  }
+  say(`ذخیره شد: ${used} ردیف استفاده شد، ${skipped} ردیف خارج از خوزستان/لرستان نادیده گرفته شد.`);
+  loadList();
+};
+
+async function initDetail(){
+  $("detailBox").classList.remove("hide");
+  const { data, error } = await sb.from("snapshots").select("id,snapshot_date").order("snapshot_date",{ascending:false}).limit(60);
+  if(error||!data) return;
+  ["dA","dB"].forEach((id,i)=>{
+    const s=$(id); s.textContent="";
+    if(id==="dB"){ const o=document.createElement("option"); o.value=""; o.textContent="بدون مقایسه"; s.appendChild(o); }
+    data.forEach(r=>{ const o=document.createElement("option"); o.value=r.id; o.textContent=r.snapshot_date; s.appendChild(o); });
+    s.selectedIndex = id==="dA" ? 0 : (data.length>1 ? 2 : 0);
+  });
+}
+async function fetchStats(id,lvl){
+  if(!id) return [];
+  const { data, error } = await sb.from("snapshot_stats").select("*").eq("snapshot_id",id).eq("level",lvl).limit(1000);
+  if(error){ say(error.message); return []; }
+  return data;
+}
+$("btnDetail").onclick = async ()=>{
+  say("");
+  const lvl=$("lvl").value, A=await fetchStats($("dA").value,lvl), B=await fetchStats($("dB").value,lvl);
+  const key=r=>[r.province,r.city,r.node].join("|"), mb={}; B.forEach(r=>mb[key(r)]=r);
+  const hasB = !!$("dB").value, tb=$("drows"); tb.textContent="";
+  A.sort((x,y)=>y.critical_count-x.critical_count||y.row_count-x.row_count).forEach(r=>{
+    const b=mb[key(r)], d=(a,c)=>hasB ? (a-(c?c:0)) : "";
+    const cells=[r.province,r.city||"",r.node||"",r.row_count,d(r.row_count,b&&b.row_count),
+      r.row_count?(r.total_days/r.row_count).toFixed(1):"",r.max_days,r.critical_count,d(r.critical_count,b&&b.critical_count)];
+    const tr=document.createElement("tr");
+    cells.forEach(v=>{ const td=document.createElement("td"); td.textContent=v; tr.appendChild(td); });
+    tb.appendChild(tr);
+  });
+};
+
+// --- debt ---
+// --- upload ---
+$("dBtnSave").onclick = async ()=>{
+  const f=$("dFile").files[0], iso=toIso($("jdate").value);
+  if(!f){ say("فایل را انتخاب کنید."); return; }
+  if(!iso){ say("تاریخ شمسی را به شکل 1405/08/02 وارد کنید."); return; }
+  say("در حال پردازش...");
+  const wb = XLSX.read(await f.arrayBuffer(), {type:"array"});
+  const ws = wb.Sheets["گزارش بدهی-کامل"] || wb.Sheets[wb.SheetNames[0]];
+  const raw = XLSX.utils.sheet_to_json(ws, {defval:""});
+  if(!raw.length){ say("شیت خالی است."); return; }
+  const rows = raw.map(r=>{ const o={}; Object.keys(r).forEach(k=>o[k.trim()]=r[k]); return o; });
+  for(const c of ["نام در جت","استان","مانده"]) if(!(c in rows[0])){ say("ستون پیدا نشد: "+c); return; }
+  const num = v => Math.round(Number(v)||0);
+  const keep = rows.filter(r=>/خوزستان|لرستان/.test(String(r["استان"]))).map(r=>({
+    node:String(r["نام در جت"]).trim(), province:String(r["استان"]).trim(), status:String(r["وضعیت"]||"").trim(),
+    balance:num(r["مانده"]), balance_no_damage:num(r["بدهی بدون خسارت"]), damage:num(r["مانده بدهی خسارت"])
+  })).filter(r=>r.node);
+  if(!keep.length){ say("ردیفی از خوزستان یا لرستان پیدا نشد."); return; }
+  const { data:ex } = await sb.from("debt_snapshots").select("id").eq("snapshot_date",iso);
+  if(ex && ex.length){
+    if(profile.role!=="owner"){ say("برای این تاریخ قبلاً ثبت شده؛ فقط مالک می‌تواند جایگزین کند."); return; }
+    if(!confirm("برای این تاریخ ثبت وجود دارد. جایگزین شود؟")){ say(""); return; }
+    const { error } = await sb.from("debt_snapshots").delete().eq("id",ex[0].id);
+    if(error){ say(error.message); return; }
+  }
+  const { data:s, error:e1 } = await sb.from("debt_snapshots").insert({snapshot_date:iso, source_file_name:f.name, row_count:keep.length}).select("id").single();
+  if(e1){ say(e1.message); return; }
+  const { error:e2 } = await sb.from("debt_rows").insert(keep.map(r=>({...r, snapshot_id:s.id})));
+  if(e2){ say("خطا در ذخیره ردیف‌ها: "+e2.message); return; }
+  say(`ذخیره شد: ${keep.length} ردیف برای ${toJ(iso)}.`); showMatrix();
+};
+
+// --- notes ---
+$("btnNote").onclick = async ()=>{
+  const iso=toIso($("ndate").value), node=$("nnode").value.trim(), text=$("ntext").value.trim();
+  if(!node||!iso||!text){ say("نود، تاریخ شمسی و متن را کامل کنید."); return; }
+  const { error } = await sb.from("debt_notes").upsert({node, note_date:iso, note:text}, {onConflict:"node,note_date"});
+  if(error){ say(error.message); return; }
+  $("ntext").value=""; say("یادداشت ثبت شد."); showMatrix();
+};
+
+// --- matrix ---
+async function showMatrix(){
+  const { data:sn, error:e0 } = await sb.from("debt_snapshots").select("id,snapshot_date").order("snapshot_date",{ascending:false}).limit(12);
+  if(e0){ say(e0.message); return; }
+  if(!sn.length){ $("mh").textContent=""; $("mb").textContent=""; say("هنوز گزارشی ثبت نشده است."); return; }
+  sn.reverse();
+  const excl = $("excl").value.split(/[,،]/).map(x=>x.trim()).filter(Boolean);
+  const prov = $("prov").value, minv = Number($("minv").value.replace(/\D/g,""))||0;
+  const per = await Promise.all(sn.map(s=>sb.from("debt_rows").select("node,province,balance").eq("snapshot_id",s.id).limit(1000)));
+  const bal = {}, ranks = {}, provOf = {};
+  sn.forEach((s,i)=>{
+    const rows = (per[i].data||[]).filter(r=>!excl.includes(r.node)).sort((a,b)=>b.balance-a.balance);
+    bal[s.snapshot_date] = {}; ranks[s.snapshot_date] = {};
+    rows.forEach((r,k)=>{ bal[s.snapshot_date][r.node]=r.balance; ranks[s.snapshot_date][r.node]=k+1; provOf[r.node]=r.province; });
+  });
+  const last = sn[sn.length-1].snapshot_date, prev = sn.length>1 ? sn[sn.length-2].snapshot_date : null;
+  const { data:nt } = await sb.from("debt_notes").select("node,note_date,note").gte("note_date",sn[0].snapshot_date).limit(1000);
+  const notes = {}; (nt||[]).forEach(n=>notes[n.node+"|"+n.note_date]=n.note);
+  const dates = [...new Set([...sn.map(s=>s.snapshot_date), ...(nt||[]).map(n=>n.note_date)])].sort();
+  const nodes = Object.keys(bal[last]).filter(n=>bal[last][n]>=minv && (!prov||provOf[n]===prov)).sort((a,b)=>ranks[last][a]-ranks[last][b]);
+  $("nodes").textContent=""; nodes.forEach(n=>{ const o=document.createElement("option"); o.value=n; $("nodes").appendChild(o); });
+  M = {dates, nodes, bal, ranks, prev, last, notes, colMax:{}};
+  dates.forEach(d=>{ M.colMax[d]=Math.max(1,...nodes.map(n=>(bal[d]&&bal[d][n])||0)); });
+  render();
+}
+
+// ---FILTER-START
+let M=null, flt={}, srt={c:1,d:1};
+const colVal=(n,c)=>{
+  if(c===0) return M.prev && M.ranks[M.prev][n] ? M.ranks[M.prev][n] : null;
+  if(c===1) return M.ranks[M.last][n];
+  if(c===2) return n;
+  const d=M.dates[c-3]; return M.bal[d] && M.bal[d][n]!==undefined ? M.bal[d][n] : null;
+};
+const passes=n=>Object.keys(flt).every(k=>{
+  const c=+k, f=flt[k], v=colVal(n,c);
+  if(c===2) return !f.set || f.set.has(n);
+  if(v===null) return f.min==null && f.max==null;
+  return (f.min==null||v>=f.min) && (f.max==null||v<=f.max);
+});
+const cmpRows=(a,b)=>{
+  const x=colVal(a,srt.c), y=colVal(b,srt.c);
+  if(x===null&&y===null) return 0; if(x===null) return 1; if(y===null) return -1;
+  return (typeof x==="string" ? x.localeCompare(y,"fa") : x-y)*srt.d;
+};
+const toNum=s=>{ const t=String(s).replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[^\d.-]/g,""); return t===""||t==="-" ? null : Number(t); };
+// ---FILTER-END
+
+function closeFp(){ $("fp").classList.add("hide"); }
+document.addEventListener("click",e=>{ if(!$("fp").contains(e.target) && !e.target.classList.contains("fb")) closeFp(); });
+
+function openFp(c,th){
+  const fp=$("fp"); fp.textContent=""; fp.classList.remove("hide");
+  const r=th.getBoundingClientRect();
+  fp.style.top=(window.scrollY+r.bottom)+"px";
+  fp.style.left=Math.max(4,Math.min(r.left+window.scrollX,document.documentElement.clientWidth-250))+"px";
+  const btn=(t,fn,cls)=>{ const x=document.createElement("button"); if(cls) x.className=cls; x.textContent=t; x.onclick=fn; fp.appendChild(x); return x; };
+  btn("مرتب‌سازی صعودی ▲",()=>{ srt={c,d:1}; closeFp(); render(); },"sec");
+  btn("مرتب‌سازی نزولی ▼",()=>{ srt={c,d:-1}; closeFp(); render(); },"sec");
+  const f=flt[c]||{}; let apply;
+  if(c===2){
+    const q=document.createElement("input"); q.type="text"; q.placeholder="جستجو..."; fp.appendChild(q);
+    const lst=document.createElement("div"); lst.className="lst"; fp.appendChild(lst);
+    const sel=new Set(f.set||M.nodes), items=[];
+    const mk=(txt,checked,onchg)=>{ const l=document.createElement("label"), i=document.createElement("input"); i.type="checkbox"; i.checked=checked; i.onchange=()=>onchg(i.checked); l.appendChild(i); l.appendChild(document.createTextNode(" "+txt)); lst.appendChild(l); return l; };
+    const all=mk("(انتخاب همه نتایج جستجو)",sel.size===M.nodes.length,ck=>{ items.forEach(it=>{ if(it.l.style.display!=="none"){ it.i.checked=ck; ck?sel.add(it.n):sel.delete(it.n); } }); });
+    M.nodes.forEach(n=>{ const l=mk(n,sel.has(n),ck=>{ ck?sel.add(n):sel.delete(n); }); items.push({n,l,i:l.firstChild}); });
+    q.oninput=()=>{ items.forEach(it=>{ it.l.style.display=it.n.includes(q.value.trim())?"":"none"; }); };
+    apply=()=>{ if(sel.size===M.nodes.length) delete flt[c]; else flt[c]={set:sel}; };
+  } else {
+    const mn=document.createElement("input"), mx=document.createElement("input");
+    mn.type=mx.type="text"; mn.placeholder="از (حداقل)"; mx.placeholder="تا (حداکثر)";
+    if(f.min!=null) mn.value=f.min; if(f.max!=null) mx.value=f.max;
+    fp.appendChild(mn); fp.appendChild(mx);
+    apply=()=>{ const a=toNum(mn.value), b=toNum(mx.value); if(a===null&&b===null) delete flt[c]; else flt[c]={min:a,max:b}; };
+  }
+  btn("اعمال",()=>{ apply(); closeFp(); render(); });
+  btn("پاک کردن فیلتر این ستون",()=>{ delete flt[c]; closeFp(); render(); },"sec");
+}
+
+function render(){
+  if(!M) return;
+  const rowsN=M.nodes.filter(passes).sort(cmpRows);
+  const mh=$("mh"); mh.textContent="";
+  const hr=document.createElement("tr");
+  ["رتبه قبلی","رتبه فعلی","نود",...M.dates.map(toJ)].forEach((t,c)=>{
+    const th=document.createElement("th"); th.appendChild(document.createTextNode(t+" "));
+    const b=document.createElement("button"); b.className="fb"+(flt[c]||srt.c===c?" on":""); b.textContent=srt.c===c?(srt.d===1?"▲":"▼"):"▾";
+    b.onclick=()=>openFp(c,th); th.appendChild(b); hr.appendChild(th);
+  });
+  mh.appendChild(hr);
+  const mb=$("mb"); mb.textContent="";
+  rowsN.forEach(n=>{
+    const tr=document.createElement("tr");
+    const add=(t,cls)=>{ const td=document.createElement("td"); td.textContent=t; if(cls) td.className=cls; tr.appendChild(td); return td; };
+    add(colVal(n,0)===null?"-":colVal(n,0)); add(colVal(n,1)); add(n,"n");
+    M.dates.forEach(d=>{
+      const v=M.bal[d]?M.bal[d][n]:undefined, td=add(v===undefined?"":fmt(v));
+      if(v!==undefined){ const t=Math.max(0,Math.min(1,v/M.colMax[d])); td.style.background=`hsl(${60*(1-t)},85%,${78-8*t}%)`; }
+      const note=M.notes[n+"|"+d];
+      if(note){ const s=document.createElement("span"); s.className="note"; s.textContent=note; td.appendChild(s); }
+    });
+    mb.appendChild(tr);
+  });
+  if(rowsN.length){
+    const tr=document.createElement("tr"); tr.style.fontWeight="bold"; tr.style.background="#eee";
+    const c0=document.createElement("td"); c0.colSpan=3; c0.textContent="جمع نودهای نمایش‌داده‌شده"; tr.appendChild(c0);
+    M.dates.forEach(d=>{ const vals=rowsN.map(n=>M.bal[d]?M.bal[d][n]:undefined).filter(v=>v!==undefined);
+      const td=document.createElement("td"); td.textContent=vals.length?fmt(vals.reduce((a,b)=>a+b,0)):""; tr.appendChild(td); });
+    mb.appendChild(tr);
+  }
+  say(`${rowsN.length} از ${M.nodes.length} نود نمایش داده شد.`);
+}
+$("btnShow").onclick = ()=>{ flt={}; srt={c:1,d:1}; showMatrix(); };
+$("btnClear").onclick = ()=>{ flt={}; srt={c:1,d:1}; render(); };
+// --- users (owner) ---
+async function loadUsers(){
+  const { data, error } = await sb.from("profiles").select("*").order("created_at");
+  if(error){ say(error.message); return; }
+  const tb=$("ub"); tb.textContent="";
+  data.forEach(u=>{
+    const tr=document.createElement("tr"), add=n=>{ const td=document.createElement("td"); if(typeof n==="string") td.textContent=n; else td.appendChild(n); tr.appendChild(td); return td; };
+    add(u.email);
+    const sel=document.createElement("select"); ["owner","admin","guest"].forEach(r=>{ const o=document.createElement("option"); o.value=r; o.textContent=r; sel.appendChild(o); }); sel.value=u.role;
+    const ck=document.createElement("input"); ck.type="checkbox"; ck.checked=u.approved;
+    const bt=document.createElement("button"); bt.textContent="ذخیره";
+    const own = u.id===profile.id; if(own){ sel.disabled=true; ck.disabled=true; bt.disabled=true; bt.textContent="خودتان"; }
+    bt.onclick=async()=>{ const { error:e } = await sb.from("profiles").update({role:sel.value, approved:ck.checked}).eq("id",u.id); say(e?e.message:"ذخیره شد: "+u.email); };
+    add(sel); add(ck); add(bt); add(new Date(u.created_at).toLocaleDateString("fa-IR")); tb.appendChild(tr);
+  });
+}
+
+// --- tabs ---
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x===b));
+  ["rusub","debt","users"].forEach(t=>$("t-"+t).classList.toggle("hide",t!==b.dataset.t));
+  if(b.dataset.t==="users") loadUsers(); closeFp();
+});
+
+// --- auth ---
+async function refresh(){
+  say("");
+  const { data:{ session } } = await sb.auth.getSession();
+  ["authBox","userBox","pendingBox","app","uploadBox","dUploadBox","noteBox","tabUsers"].forEach(i=>$(i).classList.add("hide"));
+  if(!session){ $("authBox").classList.remove("hide"); return; }
+  const { data, error } = await sb.from("profiles").select("*").eq("id", session.user.id).single();
+  if(error){ say("خطا در خواندن پروفایل: "+error.message); return; }
+  profile = data; $("who").textContent = profile.email + " — نقش: " + profile.role;
+  $("userBox").classList.remove("hide");
+  if(!profile.approved){ $("pendingBox").classList.remove("hide"); return; }
+  $("app").classList.remove("hide");
+  const adm = profile.role==="owner"||profile.role==="admin";
+  if(adm){ ["uploadBox","dUploadBox","noteBox"].forEach(i=>$(i).classList.remove("hide")); }
+  if(profile.role==="owner") $("tabUsers").classList.remove("hide");
+  loadList(); showMatrix();
+}
+$("btnLogin").onclick = async ()=>{
+  const { error } = await sb.auth.signInWithPassword({ email:$("email").value.trim(), password:$("pass").value });
+  if(error) say(error.message); else refresh();
+};
+$("btnSignup").onclick = async ()=>{
+  const { error } = await sb.auth.signUp({ email:$("email").value.trim(), password:$("pass").value });
+  if(error) say(error.message); else say("ثبت‌نام انجام شد. دسترسی بعد از تأیید مالک فعال می‌شود؛ سپس وارد شوید.");
+};
+$("btnLogout").onclick = async ()=>{ await sb.auth.signOut(); refresh(); };
+
+refresh();
+</script>
+</body>
+</html>
