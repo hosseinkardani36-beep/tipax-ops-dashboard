@@ -2,433 +2,395 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>داشبورد پیشرفته عملیات تیپاکس</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>داشبورد جامع عملیات تیپاکس</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-:root{--navy:#122541;--blue:#1769aa;--bg:#f1f4f9;--green:#14805e;--red:#c23949;--orange:#d88916}
+:root{--navy:#132342;--blue:#2459b8;--bg:#f3f6fb;--white:#fff;--line:#dfe6ef;--text:#182235;--muted:#68758a;--red:#c62828;--orange:#d97706;--green:#15803d}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:#24354b;font-family:Tahoma,Arial,sans-serif}
-header{background:linear-gradient(120deg,#10233f,#1769aa);color:white;padding:23px}
-header h1{font-size:22px;margin:0 0 10px}
-header p{font-size:12px;line-height:2;margin:0}
-main{max-width:1500px;margin:auto;padding:14px}
-.panel,.metric{background:#fff;border-radius:12px;padding:15px;margin-bottom:14px;box-shadow:0 3px 12px #10233f0c}
-h2{font-size:16px;color:var(--navy);margin:0 0 14px}
-h3{font-size:13px;margin:0 0 12px}
-label{display:block;font-size:12px;color:#5b6d83;margin-bottom:6px}
-input,select{width:100%;padding:10px;border:1px solid #cbd6e3;border-radius:7px;background:#fff;font-family:inherit;font-size:12px}
-button{border:0;border-radius:8px;background:var(--blue);color:white;padding:11px 13px;font-family:inherit;font-size:12px;cursor:pointer}
-button.green{background:var(--green)}
-button.dark{background:var(--navy)}
-button.light{background:#e7eef7;color:#193b60}
-button:hover{opacity:.9}
-.upload{background:#f8fbff;border:2px dashed #9db5d0;border-radius:10px;padding:20px;text-align:center}
-.upload input{max-width:430px;margin:12px auto}
-.status{font-size:12px;line-height:2;margin-top:10px;overflow-wrap:anywhere}
-.good{color:#08774e}.bad{color:#bd2e40}
-.note{font-size:11px;line-height:2;color:#69798c}
-.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:14px}
-.metric{margin:0;border-top:4px solid var(--blue)}
-.metric.red{border-color:var(--red)}.metric.orange{border-color:var(--orange)}.metric.green{border-color:var(--green)}
-.metric small{display:block;color:#617188;font-size:11px;line-height:1.8;margin-bottom:8px}
-.metric strong{font-size:22px;color:var(--navy);overflow-wrap:anywhere}
-.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:11px}
-.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(285px,1fr));gap:14px}
-.tablewrap{overflow:auto;max-height:510px;border:1px solid #e3eaf2;border-radius:8px}
-table{width:100%;border-collapse:collapse;background:white;font-size:11px;white-space:nowrap}
-th,td{padding:10px;border-bottom:1px solid #e5ebf2;text-align:right}
-th{position:sticky;top:0;z-index:1;background:#eaf1f9}
-tr:hover td{background:#f6f9fd}
-.baritem{margin:13px 0}
-.barhead{display:flex;justify-content:space-between;gap:8px;font-size:11px;margin-bottom:5px}
-.barbg{height:9px;background:#e7edf5;border-radius:10px;overflow:hidden}
-.barfill{height:100%;background:linear-gradient(90deg,#1769aa,#49a1df);border-radius:10px}
-.badge{display:inline-block;padding:5px 8px;border-radius:5px;font-size:10px;font-weight:bold}
-.b-critical{background:#fde5e7;color:#ae2435}
-.b-high{background:#fff0d5;color:#8b5a00}
-.b-medium{background:#e5efff;color:#215b9b}
-.b-normal{background:#e0f5e9;color:#08734e}
-.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
-.hidden{display:none}
-footer{text-align:center;color:#718097;padding:20px;font-size:11px}
-@media(max-width:600px){header h1{font-size:18px}main{padding:9px}.panel{padding:11px}.metric strong{font-size:19px}}
+body{margin:0;font-family:Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+header{background:linear-gradient(120deg,#102343,#2459b8);color:white;padding:22px}
+header h1{margin:0;font-size:23px}
+header p{margin:4px 0 0;font-size:12px;color:#e5edff}
+main{max-width:1450px;margin:auto;padding:16px}
+.notice{background:#fff7df;border:1px solid #f0d38b;padding:12px;border-radius:10px;font-size:12px;margin-bottom:15px}
+nav{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:15px}
+nav button,.btn{border:1px solid var(--line);background:white;border-radius:9px;padding:9px 12px;cursor:pointer;font-family:inherit;font-size:12px}
+nav button.active,.btn.primary{background:var(--navy);color:white}
+.panel{display:none}.panel.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.card{background:white;border:1px solid var(--line);border-radius:13px;padding:14px;min-width:0}
+.metric-label{font-size:12px;color:var(--muted)}
+.metric-value{font-size:24px;font-weight:bold;overflow-wrap:anywhere}
+.metric-note{font-size:11px;color:var(--muted)}
+h2{font-size:19px;margin:8px 0}
+h3{font-size:15px;margin:4px 0 12px}
+.sub{font-size:12px;color:var(--muted);margin-bottom:12px}
+.upload{background:white;border:1px dashed #9baac0;border-radius:12px;padding:13px;margin-bottom:12px}
+.upload input{display:block;max-width:100%;margin-top:8px}
+.status{font-size:12px;color:var(--green);margin-top:5px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+input,select{padding:9px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:12px;max-width:100%;background:white}
+input[type="file"]{font-size:12px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.table-wrap{overflow:auto;max-height:520px;border:1px solid var(--line);border-radius:10px;background:white}
+table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid #e9edf4}
+th{background:#eaf0fa;position:sticky;top:0;z-index:1}
+tr:hover td{background:#f7faff}
+.bars{display:flex;flex-direction:column;gap:9px}
+.bar{display:grid;grid-template-columns:110px 1fr 50px;gap:7px;align-items:center;font-size:11px}
+.track{height:11px;border-radius:10px;background:#edf1f7;overflow:hidden}
+.fill{height:100%;background:#3569d4;border-radius:10px}
+.barname{overflow:hidden;text-overflow:ellipsis}
+.empty{padding:16px;color:var(--muted);font-size:12px}
+.small{font-size:11px;color:var(--muted)}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:22px}
+@media(max-width:850px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cols{grid-template-columns:1fr}}
+@media(max-width:480px){main{padding:9px}.grid{gap:7px}.card{padding:10px}.metric-value{font-size:20px}header h1{font-size:19px}nav button{flex:1}}
 </style>
 </head>
 <body>
 <header>
-<h1>داشبورد پیشرفته مدیریتی رسوب تیپاکس</h1>
-<p>تحلیل عملیات خوزستان و لرستان | اولویت‌بندی بارها | رتبه‌بندی شهرها و نودها | گزارش پیگیری</p>
+<h1>داشبورد جامع عملیات تیپاکس</h1>
+<p>خوزستان و لرستان | تحلیل عملیاتی و مالی | نسخه رایگان</p>
 </header>
+
 <main>
-
-<section class="panel">
-<h2>۱. بارگذاری فایل اکسل</h2>
-<div class="upload">
-<p>فایل کامل رسوب را انتخاب کنید.</p>
-<input id="file" type="file" accept=".xlsx,.xls,.csv">
-<br><button onclick="loadFile()">بارگذاری و تحلیل</button>
-<div id="message" class="status">هنوز فایلی انتخاب نشده است.</div>
-</div>
-<p class="note">فایل در مرورگر پردازش می‌شود. برای بارگذاری کتابخانه اکسل، اتصال اینترنت لازم است. فایل حاوی اطلاعات عملیاتی را در مخزن عمومی گیت‌هاب قرار ندهید.</p>
-</section>
-
-<div id="app" class="hidden">
-
-<section class="panel">
-<h2>۲. تنظیم آستانه‌های اولویت پیگیری</h2>
-<div class="filters">
-<div><label>بحرانی: بیشتر از چند روز؟</label><input id="criticalDays" type="number" min="1" value="30"></div>
-<div><label>اولویت بالا: بیشتر از چند روز؟</label><input id="highDays" type="number" min="0" value="14"></div>
-<div><label>اولویت متوسط: بیشتر از چند روز؟</label><input id="mediumDays" type="number" min="0" value="6"></div>
-</div>
-<p class="note">پیش‌فرض: بحرانی بیش از ۳۰ روز، بالا بیش از ۱۴ روز، متوسط بیش از ۶ روز و عادی تا ۶ روز. این آستانه‌ها پیشنهاد اولیه مدیریتی هستند، نه استاندارد رسمی تیپاکس.</p>
-<button onclick="render()">اعمال آستانه‌ها</button>
-</section>
-
-<section class="panel">
-<h2>۳. فیلترهای عملیاتی</h2>
-<div class="filters">
-<div><label>استان رسوب</label><select id="province"></select></div>
-<div><label>شهر رسوب</label><select id="city"></select></div>
-<div><label>نود رسوب</label><select id="node"></select></div>
-<div><label>نوع رسوب</label><select id="type"></select></div>
-<div><label>وضعیت رسوب</label><select id="status"></select></div>
-<div><label>سطح اولویت</label><select id="priority"><option value="">همه سطوح</option><option>بحرانی</option><option>بالا</option><option>متوسط</option><option>عادی</option></select></div>
-<div><label>حداقل روز رسوب</label><input id="minDays" type="number" min="0" placeholder="مثلاً ۷"></div>
-<div><label>حداکثر روز رسوب</label><input id="maxDays" type="number" min="0" placeholder="مثلاً ۶۰"></div>
-<div><label>جست‌وجو در بارکد و اطلاعات</label><input id="search" placeholder="بارکد، شهر، قرارداد..."></div>
-</div>
-<div class="actions">
-<button onclick="render()">اعمال فیلتر</button>
-<button class="light" onclick="resetFilters()">پاک کردن فیلترها</button>
-<button class="green" onclick="exportFiltered()">خروجی اکسل اطلاعات فیلترشده</button>
-<button class="dark" onclick="exportFollowup()">خروجی اکسل پیگیری مدیریتی</button>
-<button class="light" onclick="exportReport()">خروجی اکسل گزارش مدیریتی</button>
-</div>
-<p id="filterInfo" class="note"></p>
-</section>
-
-<div class="metrics">
-<div class="metric"><small>کل ردیف‌های فیلترشده</small><strong id="mTotal">۰</strong></div>
-<div class="metric"><small>رسوب خوزستان</small><strong id="mKh">۰</strong></div>
-<div class="metric"><small>رسوب لرستان</small><strong id="mLo">۰</strong></div>
-<div class="metric orange"><small>میانگین روزهای رسوب</small><strong id="mAvg">۰</strong></div>
-<div class="metric red"><small>بارهای بحرانی</small><strong id="mCritical">۰</strong></div>
-<div class="metric orange"><small>بارهای با اولویت بالا</small><strong id="mHigh">۰</strong></div>
-<div class="metric red"><small>بیشترین روز رسوب</small><strong id="mMax">۰</strong></div>
-<div class="metric green"><small>جمع روزهای رسوب</small><strong id="mSum">۰</strong></div>
+<div class="notice">
+<b>توجه:</b> هر بخش فایل اکسل مخصوص خودش را دارد. فایل‌ها در مرورگر پردازش می‌شوند و در GitHub بارگذاری نمی‌شوند. برای خواندن و خروجی اکسل، اینترنت و بارگیری کتابخانه XLSX لازم است. اطلاعات مشتریان را در مخزن عمومی قرار ندهید.
 </div>
 
-<section class="panel">
-<h2>۴. جمع‌بندی مدیریتی</h2>
-<div id="insights" class="note"></div>
-</section>
+<nav id="nav">
+<button class="active" data-tab="home">صفحه مدیریت</button>
+<button data-tab="residue">رسوب بارها</button>
+<button data-tab="debt">بدهی و وصول</button>
+<button data-tab="complaints">شکایات</button>
+<button data-tab="sla">SLA</button>
+<button data-tab="finance">مالی بارها</button>
+<button data-tab="reports">گزارش‌ها</button>
+</nav>
 
-<div class="grid">
-<section class="panel"><h2>۵. مقایسه استان‌ها</h2><div id="provinceChart"></div></section>
-<section class="panel"><h2>۶. ده شهر با بیشترین رسوب</h2><div id="cityChart"></div></section>
-<section class="panel"><h2>۷. ده نود با بیشترین رسوب</h2><div id="nodeChart"></div></section>
-<section class="panel"><h2>۸. تحلیل نوع رسوب</h2><div id="typeChart"></div></section>
-<section class="panel"><h2>۹. تحلیل وضعیت رسوب</h2><div id="statusChart"></div></section>
-<section class="panel"><h2>۱۰. توزیع سنی بارهای رسوبی</h2><div id="ageChart"></div></section>
+<section id="home" class="panel active">
+<h2>نمای کلی مدیریت</h2>
+<p class="sub">آمار هر بخش پس از بارگذاری فایل مربوطه نمایش داده می‌شود.</p>
+<div class="grid" id="homeMetrics"></div>
+<div class="cols">
+<div class="card"><h3>وضعیت فایل‌ها</h3><div id="fileStatus"></div></div>
+<div class="card"><h3>اقدام‌های پیشنهادی</h3><div id="actions"></div></div>
 </div>
-
-<section class="panel">
-<h2>۱۱. رتبه‌بندی شهرها و نودهای نیازمند پیگیری</h2>
-<p class="note">رتبه‌بندی بر اساس تعداد ردیف‌ها انجام می‌شود. مجموع روزها، میانگین روزها و تعداد بارهای بحرانی نیز برای تعیین اولویت نمایش داده می‌شوند.</p>
-<div class="tablewrap"><table id="ranking"></table></div>
-</section>
-
-<section class="panel">
-<h2>۱۲. فهرست بارهای اولویت‌دار</h2>
-<div class="tablewrap"><table id="followup"></table></div>
-</section>
-
-<section class="panel">
-<h2>۱۳. جست‌وجو و مشاهده اطلاعات بارها</h2>
-<div class="tablewrap"><table id="details"></table></div>
-<p id="pageInfo" class="note"></p>
-</section>
+<div class="card">
+<h3>راهنمای شروع</h3>
+۱. وارد بخش موردنظر شو.<br>
+۲. فایل اکسل همان بخش را انتخاب کن.<br>
+۳. استان را فیلتر کن و نتایج را بررسی کن.<br>
+۴. برای ذخیره گزارش، دکمه خروجی اکسل را بزن.
 </div>
+</section>
+
+<section id="residue" class="panel">
+<h2>۱. تحلیل رسوب بارها</h2>
+<p class="sub">مناسب فایل دارای ستون‌هایی مانند «استان رسوب»، «شهر رسوب»، «نود رسوب» و «تعداد روزهای رسوب».</p>
+<div class="upload">فایل اکسل رسوب را انتخاب کن<input type="file" id="fResidue" accept=".xlsx,.xls,.csv"><div class="status" id="sResidue">فایلی بارگذاری نشده است.</div></div>
+<div class="controls">
+<select id="pResidue"><option value="">همه استان‌ها</option><option>خوزستان</option><option>لرستان</option></select>
+<input id="cResidue" placeholder="فیلتر شهر">
+<input id="nResidue" placeholder="فیلتر نود">
+<select id="levelResidue"><option value="">همه اولویت‌ها</option><option>بحرانی</option><option>بالا</option><option>متوسط</option><option>عادی</option></select>
+<input id="qResidue" placeholder="بارکد یا قرارداد">
+<button class="btn primary" id="xResidue">خروجی فهرست پیگیری</button>
+</div>
+<div class="grid" id="mResidue"></div>
+<div class="cols">
+<div class="card"><h3>تفکیک بر اساس اولویت</h3><div id="bResidue" class="bars"></div></div>
+<div class="card"><h3>۱۰ شهر دارای بیشترین رسوب</h3><div id="cityResidue" class="bars"></div></div>
+</div>
+<h3>فهرست اقدام روزانه</h3>
+<div class="small" id="countResidue"></div>
+<div class="table-wrap"><table><thead id="hResidue"></thead><tbody id="tResidue"></tbody></table></div>
+</section>
+
+<section id="debt" class="panel">
+<h2>۲. بدهی و وصول مطالبات</h2>
+<p class="sub">بارگذاری گزارش مالی نمایندگی‌ها برای بررسی مانده بدهی و وصول.</p>
+<div class="upload">فایل بدهی و وصول را انتخاب کن<input type="file" id="fDebt" accept=".xlsx,.xls,.csv"><div class="status" id="sDebt">فایلی بارگذاری نشده است.</div></div>
+<div class="controls"><select id="pDebt"><option value="">همه استان‌ها</option><option>خوزستان</option><option>لرستان</option></select><input id="qDebt" placeholder="جست‌وجوی نمایندگی"><button class="btn primary" id="xDebt">خروجی اکسل بدهی</button></div>
+<div class="grid" id="mDebt"></div>
+<div class="cols"><div class="card"><h3>بیشترین مانده / بدهی</h3><div id="bDebt" class="bars"></div></div><div class="card"><h3>ستون‌های تشخیص داده‌شده</h3><div id="noteDebt" class="small"></div></div></div>
+<div class="table-wrap"><table><thead id="hDebt"></thead><tbody id="tDebt"></tbody></table></div>
+</section>
+
+<section id="complaints" class="panel">
+<h2>۳. تحلیل شکایات</h2>
+<p class="sub">برای تحلیل شکایت به تفکیک استان، شهر یا نمایندگی، فایل شکایات را وارد کن.</p>
+<div class="upload">فایل شکایات را انتخاب کن<input type="file" id="fComplaints" accept=".xlsx,.xls,.csv"><div class="status" id="sComplaints">فایلی بارگذاری نشده است.</div></div>
+<div class="controls"><select id="pComplaints"><option value="">همه استان‌ها</option><option>خوزستان</option><option>لرستان</option></select><input id="qComplaints" placeholder="جست‌وجوی شکایت یا نمایندگی"><button class="btn primary" id="xComplaints">خروجی اکسل شکایات</button></div>
+<div class="grid" id="mComplaints"></div>
+<div class="cols"><div class="card"><h3>بیشترین شکایت بر اساس شهر / نمایندگی</h3><div id="bComplaints" class="bars"></div></div><div class="card"><h3>ستون‌های تشخیص داده‌شده</h3><div id="noteComplaints" class="small"></div></div></div>
+<div class="table-wrap"><table><thead id="hComplaints"></thead><tbody id="tComplaints"></tbody></table></div>
+</section>
+
+<section id="sla" class="panel">
+<h2>۴. عملکرد SLA و تأخیر</h2>
+<p class="sub">بارگذاری فایل SLA برای تحلیل ستون‌های موجود، زمان‌ها و وضعیت‌های عملکرد.</p>
+<div class="upload">فایل SLA را انتخاب کن<input type="file" id="fSla" accept=".xlsx,.xls,.csv"><div class="status" id="sSla">فایلی بارگذاری نشده است.</div></div>
+<div class="controls"><select id="pSla"><option value="">همه استان‌ها</option><option>خوزستان</option><option>لرستان</option></select><input id="qSla" placeholder="جست‌وجوی شهر یا نمایندگی"><button class="btn primary" id="xSla">خروجی اکسل SLA</button></div>
+<div class="grid" id="mSla"></div>
+<div class="cols"><div class="card"><h3>توزیع موارد بر اساس شهر / نمایندگی</h3><div id="bSla" class="bars"></div></div><div class="card"><h3>ستون‌های تشخیص داده‌شده</h3><div id="noteSla" class="small"></div></div></div>
+<div class="table-wrap"><table><thead id="hSla"></thead><tbody id="tSla"></tbody></table></div>
+</section>
+
+<section id="finance" class="panel">
+<h2>۵. تحلیل مالی بارها</h2>
+<p class="sub">تحلیل مبلغ قرارداد، COD و پس‌کرایه، در صورت وجود این ستون‌ها در فایل اکسل.</p>
+<div class="upload">فایل مالی بارها را انتخاب کن<input type="file" id="fFinance" accept=".xlsx,.xls,.csv"><div class="status" id="sFinance">فایلی بارگذاری نشده است.</div></div>
+<div class="controls"><select id="pFinance"><option value="">همه استان‌ها</option><option>خوزستان</option><option>لرستان</option></select><input id="qFinance" placeholder="جست‌وجوی بارکد یا نمایندگی"><button class="btn primary" id="xFinance">خروجی اکسل مالی</button></div>
+<div class="grid" id="mFinance"></div>
+<div class="cols"><div class="card"><h3>جمع مبالغ مالی شناسایی‌شده</h3><div id="bFinance" class="bars"></div></div><div class="card"><h3>ستون‌های تشخیص داده‌شده</h3><div id="noteFinance" class="small"></div></div></div>
+<div class="table-wrap"><table><thead id="hFinance"></thead><tbody id="tFinance"></tbody></table></div>
+</section>
+
+<section id="reports" class="panel">
+<h2>۶. گزارش مدیریتی</h2>
+<p class="sub">فایل اکسل چندشیتی از داده‌های بارگذاری‌شده تهیه می‌شود.</p>
+<div class="card">
+<h3>خروجی گزارش جامع</h3>
+<p class="small">شامل خلاصه وضعیت بارگذاری و داده‌های موجود هر بخش است. فقط فایل‌هایی که در این صفحه بارگذاری شده‌اند در خروجی قرار می‌گیرند.</p>
+<button class="btn primary" id="xAll">دانلود گزارش مدیریتی جامع</button>
+<div class="status" id="sAll"></div>
+</div>
+<div class="card" style="margin-top:12px">
+<h3>محدودیت‌های این نسخه</h3>
+<ul class="small">
+<li>با تازه‌سازی صفحه، داده‌های بارگذاری‌شده از حافظه صفحه پاک می‌شوند و باید دوباره فایل‌ها را انتخاب کنی.</li>
+<li>تشخیص ستون‌ها براساس نام آن‌هاست؛ نتایج را با فایل مبنا تطبیق بده.</li>
+<li>نسبت شکایت به عملیات نیازمند تعداد عملیات همان دوره است.</li>
+<li>مقایسه روزانه و هفتگی نیازمند داده‌های دارای تاریخ یا فایل‌های دوره‌ای است.</li>
+<li>این نسخه گزارش و تحلیل می‌دهد؛ اطلاعات ورود، ثبت پیگیری مشترک و ذخیره دائمی به پایگاه داده نیاز دارند.</li>
+</ul>
+</div>
+</section>
+<footer>داشبورد جامع عملیات تیپاکس | خوزستان و لرستان</footer>
 </main>
-<footer>داشبورد مدیریتی تیپاکس | نسخه مرورگری</footer>
 
 <script>
-let source=[],filtered=[],headers=[],keys={};
-
+const D={residue:null,debt:null,complaints:null,sla:null,finance:null};
 const $=id=>document.getElementById(id);
 const fmt=n=>Number(n||0).toLocaleString('fa-IR',{maximumFractionDigits:2});
-
-function norm(v){
- return String(v??'').replace(/ي/g,'ی').replace(/ك/g,'ک')
- .replace(/[\u200c\s_ـ]/g,'').toLowerCase().trim();
+const norm=s=>String(s??'').trim().toLowerCase().replace(/[ي]/g,'ی').replace(/[ك]/g,'ک').replace(/\s+/g,' ');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function number(v){
+ if(typeof v==='number')return v;
+ let s=String(v??'').replace(/[٬,،\s]/g,'');
+ s=s.replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+ s=s.replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+ let n=Number(s);return Number.isFinite(n)?n:0;
 }
-function num(v){
- if(typeof v==='number')return Number.isFinite(v)?v:0;
- const s=String(v??'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
- .replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d))
- .replace(/[٬,]/g,'').trim();
- const n=parseFloat(s);return Number.isFinite(n)?n:0;
+function findCol(row,aliases){
+ const keys=Object.keys(row||{});
+ for(const a of aliases){const k=keys.find(x=>norm(x)===norm(a));if(k)return k}
+ for(const a of aliases){const k=keys.find(x=>norm(x).includes(norm(a)));if(k)return k}
+ return null;
 }
-function txt(v){return String(v??'').trim()}
-function safe(v){
- return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-function findCol(exact,partial=[]){
- for(const h of headers)if(exact.some(x=>norm(h)===norm(x)))return h;
- for(const h of headers)if(partial.some(x=>norm(h).includes(norm(x))))return h;
- return '';
-}
-function message(t,error=false){
- $('message').textContent=t;
- $('message').className='status '+(error?'bad':'good');
-}
-async function loadFile(){
- const f=$('file').files[0];
- if(!f){message('ابتدا فایل اکسل را انتخاب کنید.',true);return}
- if(!window.XLSX){message('کتابخانه اکسل بارگذاری نشده؛ اتصال اینترنت را بررسی کنید.',true);return}
- try{
- message('در حال خواندن فایل...');
- const buffer=await f.arrayBuffer();
- const wb=f.name.toLowerCase().endsWith('.csv')
- ?XLSX.read(new TextDecoder('utf-8').decode(buffer),{type:'string'})
- :XLSX.read(buffer,{type:'array'});
- const ws=wb.Sheets[wb.SheetNames[0]];
- const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
- if(!rows.length)throw Error('در برگه اول فایل داده‌ای وجود ندارد.');
- headers=Object.keys(rows[0]);
- keys.province=findCol(['استان رسوب'],['استانرسوب']);
- keys.city=findCol(['شهر رسوب'],['شهررسوب']);
- keys.node=findCol(['نود رسوب'],['نودرسوب']);
- keys.days=findCol(['تعداد روزهای رسوب','روزهای رسوب'],['تعدادروزهایرسوب','روزهایرسوب']);
- keys.type=findCol(['نوع رسوب'],['نوعرسوب']);
- keys.status=findCol(['وضعیت رسوب'],['وضعیترسوب']);
- keys.barcode=findCol(['بارکد','بارکد مرسوله'],['بارکد']);
- keys.contract=findCol(['شماره قرارداد'],['شمارهقرارداد']);
- keys.complaint=findCol(['COMPLAINTID'],['complaintid']);
- keys.lastNode=findCol(['زمان آخرین نود'],['زمانآخریننود']);
- keys.sla=findCol(['SLA','PLANSLA_NEW'],['sla']);
- keys.receiver=findCol(['شهر گیرنده'],['شهرگیرنده']);
- keys.sender=findCol(['شهر فرستنده'],['شهرفرستنده']);
- if(!keys.province)throw Error('ستون «استان رسوب» پیدا نشد.');
- if(!keys.days)throw Error('ستون «تعداد روزهای رسوب» پیدا نشد.');
- source=rows.map((r,i)=>{
- const p=txt(r[keys.province]).replace(/ي/g,'ی').replace(/ك/g,'ک');
- const province=p.includes('خوزستان')?'خوزستان':p.includes('لرستان')?'لرستان':p||'نامشخص';
- return {...r,__row:i+2,__province:province,__days:num(r[keys.days])};
- });
- $('app').classList.remove('hidden');
- populateFilters();
- render();
- message('فایل با موفقیت خوانده شد: '+fmt(source.length)+' ردیف.');
- }catch(e){message('خطا: '+e.message,true)}
-}
-function setSelect(id,values,label){
- const el=$(id),old=el.value;
- el.innerHTML='';
- const first=document.createElement('option');
- first.value='';first.textContent=label;el.appendChild(first);
- [...new Set(values.filter(v=>txt(v)!==''))].sort((a,b)=>String(a).localeCompare(String(b),'fa')).forEach(v=>{
- const o=document.createElement('option');o.value=v;o.textContent=v;el.appendChild(o);
- });
- if([...el.options].some(o=>o.value===old))el.value=old;
-}
-function populateFilters(){
- setSelect('province',source.map(r=>r.__province),'همه استان‌ها');
- setSelect('city',source.map(r=>txt(r[keys.city])),'همه شهرها');
- setSelect('node',source.map(r=>txt(r[keys.node])),'همه نودها');
- setSelect('type',keys.type?source.map(r=>txt(r[keys.type])):[],'همه انواع');
- setSelect('status',keys.status?source.map(r=>txt(r[keys.status])):[],'همه وضعیت‌ها');
-}
-function thresholds(){
+function detect(rows){
+ const r=rows[0]||{};
  return {
-  critical:Math.max(1,num($('criticalDays').value)||30),
-  high:Math.max(0,num($('highDays').value)||14),
-  medium:Math.max(0,num($('mediumDays').value))
+ province:findCol(r,['استان رسوب','استان','province']),
+ city:findCol(r,['شهر رسوب','شهر نمایندگی','نام نمایندگی','نمایندگی','شهر','city','branch']),
+ node:findCol(r,['نود رسوب','نود','node']),
+ days:findCol(r,['تعداد روزهای رسوب','روزهای رسوب','روز رسوب','مدت رسوب','days']),
+ barcode:findCol(r,['بارکد','barcode']),
+ contract:findCol(r,['شماره قرارداد','قرارداد']),
+ type:findCol(r,['نوع رسوب','نوع شکایت','نوع']),
+ status:findCol(r,['وضعیت رسوب','وضعیت شکایت','وضعیت']),
+ debt:findCol(r,['مانده بدهی','مبلغ بدهی','بدهی','مانده','balance','debt']),
+ collected:findCol(r,['مبلغ وصول','وصول شده','وصولی','پرداخت شده به شرکت','collected']),
+ complaintId:findCol(r,['COMPLAINTID','شناسه شکایت','کد شکایت','شماره شکایت']),
+ sla:findCol(r,['وضعیت SLA','رعایت SLA','SLA وضعیت','SLA']),
+ delay:findCol(r,['میزان تأخیر','میزان تاخیر','تأخیر','تاخیر','delay']),
+ cod:findCol(r,['COD']),
+ post:findCol(r,['پس کرایه','پس‌کرایه','پسکرایه']),
+ contractAmount:findCol(r,['مبلغ قرارداد','مبلغ بار']),
+ opCount:findCol(r,['تعداد عملیات','تعداد مرسوله','حجم عملیات'])
  };
 }
-function level(days){
- const t=thresholds();
- if(days>t.critical)return 'بحرانی';
- if(days>t.high)return 'بالا';
- if(days>t.medium)return 'متوسط';
+function loadFile(inputId,key,statusId){
+ const file=$(inputId).files[0];if(!file)return;
+ if(!window.XLSX){$(statusId).textContent='کتابخانه اکسل بارگذاری نشده؛ اینترنت را بررسی و صفحه را تازه‌سازی کن.';return}
+ const reader=new FileReader();
+ reader.onload=e=>{
+  try{
+   const wb=XLSX.read(e.target.result,{type:'array'});
+   const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+   D[key]={name:file.name,rows,cols:detect(rows)};
+   $(statusId).textContent='بارگذاری موفق: '+file.name+' | '+fmt(rows.length)+' ردیف';
+   renderAll();
+  }catch(err){$(statusId).textContent='خطا در خواندن فایل: '+err.message}
+ };
+ reader.readAsArrayBuffer(file);
+}
+[
+ ['fResidue','residue','sResidue'],['fDebt','debt','sDebt'],
+ ['fComplaints','complaints','sComplaints'],['fSla','sla','sSla'],
+ ['fFinance','finance','sFinance']
+].forEach(a=>$(a[0]).addEventListener('change',()=>loadFile(...a)));
+
+document.querySelectorAll('nav button').forEach(btn=>btn.addEventListener('click',()=>{
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b===btn));
+ document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===btn.dataset.tab));
+}));
+
+function setMetrics(id,items){
+ $(id).innerHTML=items.map(x=>`<div class="card"><div class="metric-label">${esc(x[0])}</div><div class="metric-value">${esc(x[1])}</div><div class="metric-note">${esc(x[2]||'')}</div></div>`).join('');
+}
+function drawBars(id,items){
+ items=items.filter(x=>x.label).slice(0,10);
+ if(!items.length){$(id).innerHTML='<div class="empty">برای نمایش، ابتدا فایل مربوطه را بارگذاری کن.</div>';return}
+ const max=Math.max(1,...items.map(x=>Math.abs(x.value)));
+ $(id).innerHTML=items.map(x=>`<div class="bar"><div class="barname" title="${esc(x.label)}">${esc(x.label)}</div><div class="track"><div class="fill" style="width:${Math.max(1,Math.abs(x.value)/max*100)}%"></div></div><div>${fmt(x.value)}</div></div>`).join('');
+}
+function renderTable(headId,bodyId,rows,keys,limit=200){
+ if(!rows||!rows.length){$(headId).innerHTML='';$(bodyId).innerHTML='<tr><td class="empty">داده‌ای برای نمایش وجود ندارد.</td></tr>';return}
+ keys=keys||Object.keys(rows[0]);
+ $(headId).innerHTML='<tr>'+keys.map(k=>'<th>'+esc(k)+'</th>').join('')+'</tr>';
+ $(bodyId).innerHTML=rows.slice(0,limit).map(r=>'<tr>'+keys.map(k=>'<td>'+esc(r[k])+'</td>').join('')+'</tr>').join('');
+ if(rows.length>limit)$(bodyId).innerHTML+=`<tr><td colspan="${keys.length}">فقط ${fmt(limit)} ردیف نخست نمایش داده شده؛ خروجی اکسل همه موارد را شامل می‌شود.</td></tr>`;
+}
+function groupRows(rows,key){
+ if(!key)return [];
+ const map={};
+ rows.forEach(r=>{const name=String(r[key]||'نامشخص');map[name]=(map[name]||0)+1});
+ return Object.entries(map).map(([label,value])=>({label,value})).sort((a,b)=>b.value-a.value);
+}
+function filterProvince(rows,key,selectId){
+ const p=$(selectId).value;
+ return !p||!key?rows:rows.filter(r=>norm(r[key]).includes(norm(p)));
+}
+function priority(days){
+ if(days>30)return 'بحرانی';
+ if(days>14)return 'بالا';
+ if(days>6)return 'متوسط';
  return 'عادی';
 }
-function ageBand(days){
- const t=thresholds();
- if(days>t.critical)return 'بحرانی';
- if(days>t.high)return 'بالا';
- if(days>t.medium)return 'متوسط';
- return 'عادی';
+function residueRows(){
+ const d=D.residue;if(!d)return [];
+ const c=d.cols;
+ let rows=filterProvince(d.rows,c.province,'pResidue');
+ const city=norm($('cResidue').value),node=norm($('nResidue').value),q=norm($('qResidue').value),level=$('levelResidue').value;
+ rows=rows.filter(r=>
+ (!city||norm(c.city?r[c.city]:'').includes(city))&&
+ (!node||norm(c.node?r[c.node]:'').includes(node))&&
+ (!q||[c.barcode,c.contract].some(k=>k&&norm(r[k]).includes(q)))&&
+ (!level||priority(number(c.days?r[c.days]:0))===level)
+ );
+ return rows.sort((a,b)=>number(c.days?b[c.days]:0)-number(c.days?a[c.days]:0));
 }
-function badge(level){
- const c={'بحرانی':'b-critical','بالا':'b-high','متوسط':'b-medium','عادی':'b-normal'};
- return '<span class="badge '+c[level]+'">'+level+'</span>';
+function renderResidue(){
+ const d=D.residue;
+ if(!d){
+ setMetrics('mResidue',[['تعداد بار','—','فایل بارگذاری نشده'],['بحرانی','—','بیشتر از ۳۰ روز'],['اولویت بالا','—','بیشتر از ۱۴ روز'],['میانگین رسوب','—','']]);
+ drawBars('bResidue',[]);drawBars('cityResidue',[]);renderTable('hResidue','tResidue',[],[]);return;
+ }
+ const c=d.cols,rows=residueRows(),days=r=>number(c.days?r[c.days]:0);
+ const critical=rows.filter(r=>days(r)>30).length;
+ const high=rows.filter(r=>days(r)>14&&days(r)<=30).length;
+ const avg=rows.length?rows.reduce((s,r)=>s+days(r),0)/rows.length:0;
+ const max=rows.reduce((m,r)=>Math.max(m,days(r)),0);
+ setMetrics('mResidue',[
+ ['ردیف‌های منطبق با فیلتر',fmt(rows.length),'از '+fmt(d.rows.length)+' ردیف'],
+ ['بحرانی',fmt(critical),'بیشتر از ۳۰ روز'],
+ ['اولویت بالا',fmt(high),'بیشتر از ۱۴ تا ۳۰ روز'],
+ ['میانگین روز رسوب',fmt(avg),'بیشترین: '+fmt(max)+' روز']
+ ]);
+ drawBars('bResidue',['بحرانی','بالا','متوسط','عادی'].map(p=>({label:p,value:rows.filter(r=>priority(days(r))===p).length})));
+ drawBars('cityResidue',groupRows(rows,c.city));
+ $('countResidue').textContent='مرتب‌شده از بیشترین روز رسوب؛ '+fmt(rows.length)+' ردیف مطابق فیلتر';
+ const keys=[c.barcode,c.province,c.city,c.node,c.days,c.type,c.status,c.contract].filter((v,i,a)=>v&&a.indexOf(v)===i);
+ const view=rows.map(r=>{const o={};keys.forEach(k=>o[k]=r[k]);o['سطح اولویت']=priority(days(r));return o});
+ renderTable('hResidue','tResidue',view,Object.keys(view[0]||{}));
 }
-function render(){
- if(!source.length)return;
- const province=$('province').value,city=$('city').value,node=$('node').value;
- const type=$('type').value,status=$('status').value,priority=$('priority').value;
- const min=$('minDays').value,max=$('maxDays').value,search=norm($('search').value);
- filtered=source.filter(r=>{
-  if(province&&r.__province!==province)return false;
-  if(city&&txt(r[keys.city])!==city)return false;
-  if(node&&txt(r[keys.node])!==node)return false;
-  if(type&&keys.type&&txt(r[keys.type])!==type)return false;
-  if(status&&keys.status&&txt(r[keys.status])!==status)return false;
-  if(min!==''&&r.__days<num(min))return false;
-  if(max!==''&&r.__days>num(max))return false;
-  if(priority&&level(r.__days)!==priority)return false;
-  if(search&&!headers.some(h=>norm(r[h]).includes(search)))return false;
-  return true;
- });
- updateDashboard();
+function genericRender(key,prefix){
+ const d=D[key];
+ const ids={
+ debt:['mDebt','bDebt','noteDebt','hDebt','tDebt','pDebt','qDebt','xDebt'],
+ complaints:['mComplaints','bComplaints','noteComplaints','hComplaints','tComplaints','pComplaints','qComplaints','xComplaints'],
+ sla:['mSla','bSla','noteSla','hSla','tSla','pSla','qSla','xSla'],
+ finance:['mFinance','bFinance','noteFinance','hFinance','tFinance','pFinance','qFinance','xFinance']
+ }[key];
+ const [mid,bid,nid,hid,tid,pid,qid,xid]=ids;
+ if(!d){
+ setMetrics(mid,[['تعداد ردیف','—','فایل بارگذاری نشده'],['مجموع مبلغ','—','در صورت شناسایی ستون'],['شهر / نمایندگی','—',''],['ستون‌های قابل تشخیص','—','']]);
+ drawBars(bid,[]);$(nid).textContent='پس از بارگذاری فایل، ستون‌های تشخیص‌داده‌شده نمایش داده می‌شوند.';
+ renderTable(hid,tid,[],[]);return;
+ }
+ const c=d.cols;let rows=filterProvince(d.rows,c.province,pid);
+ const q=norm($(qid).value);
+ if(q)rows=rows.filter(r=>Object.values(r).some(v=>norm(v).includes(q)));
+ let amountKey=key==='debt'?c.debt:key==='finance'?(c.cod||c.post||c.contractAmount):null;
+ let total=amountKey?rows.reduce((s,r)=>s+number(r[amountKey]),0):null;
+ const cityCount=c.city?new Set(rows.map(r=>String(r[c.city]||'')).filter(Boolean)).size:null;
+ const uniqueComplaint=c.complaintId?new Set(rows.map(r=>String(r[c.complaintId]||'')).filter(Boolean)).size:null;
+ setMetrics(mid,[
+ ['تعداد ردیف',fmt(rows.length),'از '+fmt(d.rows.length)+' ردیف'],
+ [key==='complaints'?'شناسه شکایت یکتا':'مجموع مبلغ شناسایی‌شده',key==='complaints'?(uniqueComplaint===null?'تشخیص داده نشد':fmt(uniqueComplaint)):(total===null?'تشخیص داده نشد':fmt(total)),amountKey||c.complaintId||'ستون مناسب پیدا نشد'],
+ ['شهر / نمایندگی یکتا',cityCount===null?'تشخیص داده نشد':fmt(cityCount),c.city||'ستون شهر پیدا نشد'],
+ ['ستون‌های قابل تشخیص',fmt(Object.values(c).filter(Boolean).length),'بر اساس نام ستون‌ها']
+ ]);
+ drawBars(bid,groupRows(rows,c.city));
+ const notes=Object.entries(c).filter(x=>x[1]).map(([k,v])=>`<div>• ${esc(k)}: <b>${esc(v)}</b></div>`).join('');
+ $(nid).innerHTML=notes||'ستون قابل تشخیص پیدا نشد.';
+ renderTable(hid,tid,rows,Object.keys(rows[0]||{}).slice(0,18));
+ $(xid).onclick=()=>exportRows(key+'_filtered.xlsx',rows);
 }
-function group(rows,fn){
- const m=new Map();
- rows.forEach(r=>{
-  const name=fn(r)||'نامشخص';
-  if(!m.has(name))m.set(name,{name,count:0,sum:0,max:0,critical:0,high:0});
-  const x=m.get(name);x.count++;x.sum+=r.__days;x.max=Math.max(x.max,r.__days);
-  if(level(r.__days)==='بحرانی')x.critical++;
-  if(level(r.__days)==='بالا')x.high++;
- });
- return [...m.values()].sort((a,b)=>b.count-a.count);
-}
-function updateDashboard(){
- const rows=filtered,t=thresholds();
- const sum=rows.reduce((a,r)=>a+r.__days,0);
- const max=rows.reduce((a,r)=>Math.max(a,r.__days),0);
- const kh=rows.filter(r=>r.__province==='خوزستان').length;
- const lo=rows.filter(r=>r.__province==='لرستان').length;
- $('mTotal').textContent=fmt(rows.length);
- $('mKh').textContent=fmt(kh);$('mLo').textContent=fmt(lo);
- $('mAvg').textContent=fmt(rows.length?sum/rows.length:0);
- $('mCritical').textContent=fmt(rows.filter(r=>level(r.__days)==='بحرانی').length);
- $('mHigh').textContent=fmt(rows.filter(r=>level(r.__days)==='بالا').length);
- $('mMax').textContent=fmt(max);$('mSum').textContent=fmt(sum);
- $('filterInfo').textContent='تعداد ردیف‌های منطبق با فیلترها: '+fmt(rows.length);
- bars('provinceChart',group(rows,r=>r.__province));
- bars('cityChart',group(rows,r=>txt(r[keys.city])).slice(0,10));
- bars('nodeChart',group(rows,r=>txt(r[keys.node])).slice(0,10));
- bars('typeChart',keys.type?group(rows,r=>txt(r[keys.type])).slice(0,10):[]);
- bars('statusChart',keys.status?group(rows,r=>txt(r[keys.status])).slice(0,10):[]);
- bars('ageChart',group(rows,r=>ageBand(r.__days)));
- renderInsights(rows,sum,t);
- renderRanking(rows);
- const cols=unique([keys.barcode,keys.province,keys.city,keys.node,keys.days,keys.type,keys.status,keys.lastNode,keys.sla].filter(Boolean));
- const priorityRows=[...rows].sort((a,b)=>b.__days-a.__days);
- table('followup',priorityRows.slice(0,150),cols,true);
- table('details',rows.slice(0,100),headers,false);
- $('pageInfo').textContent='نمایش '+fmt(Math.min(rows.length,100))+' ردیف از '+fmt(rows.length)+'. خروجی اکسل شامل تمام ردیف‌های منطبق است.';
-}
-function bars(id,items){
- const el=$(id);
- if(!items.length){el.innerHTML='<p class="note">ستون مربوطه پیدا نشد یا داده‌ای برای نمایش نیست.</p>';return}
- const max=Math.max(...items.map(x=>x.count),1);
- el.innerHTML=items.map(x=>`
- <div class="baritem">
- <div class="barhead"><span>${safe(x.name)}</span><b>${fmt(x.count)} ردیف</b></div>
- <div class="barbg"><div class="barfill" style="width:${Math.max(1,x.count/max*100)}%"></div></div>
- <div class="note">سهم از ردیف‌های فیلترشده: ${fmt(x.count/(filtered.length||1)*100)}٪ | مجموع روز: ${fmt(x.sum)} | میانگین: ${fmt(x.sum/x.count)} روز | بحرانی: ${fmt(x.critical)}</div>
- </div>`).join('');
-}
-function renderInsights(rows,sum,t){
- if(!rows.length){$('insights').textContent='هیچ ردیفی با فیلترهای فعلی مطابقت ندارد.';return}
- const cities=group(rows,r=>txt(r[keys.city]));
- const nodes=group(rows,r=>txt(r[keys.node]));
- const oldest=[...rows].sort((a,b)=>b.__days-a.__days)[0];
- const critical=rows.filter(r=>level(r.__days)==='بحرانی').length;
- const high=rows.filter(r=>level(r.__days)==='بالا').length;
- $('insights').innerHTML=`
- <p>• تعداد ردیف‌های بررسی‌شده: <b>${fmt(rows.length)}</b></p>
- <p>• ردیف‌های بحرانی (بیش از ${fmt(t.critical)} روز): <b>${fmt(critical)}</b>؛ معادل ${fmt(critical/rows.length*100)}٪.</p>
- <p>• ردیف‌های اولویت بالا (بیش از ${fmt(t.high)} روز و در محدوده بحرانی نیستند): <b>${fmt(high)}</b>.</p>
- <p>• شهر دارای بیشترین ردیف: <b>${safe(cities[0]?.name||'نامشخص')}</b>، ${fmt(cities[0]?.count||0)} ردیف.</p>
- <p>• نود دارای بیشترین ردیف: <b>${safe(nodes[0]?.name||'نامشخص')}</b>، ${fmt(nodes[0]?.count||0)} ردیف.</p>
- <p>• قدیمی‌ترین بار در داده‌های فیلترشده: <b>${safe(keys.barcode?oldest[keys.barcode]:'')}</b>، ${fmt(oldest.__days)} روز، استان ${safe(oldest.__province)}، شهر ${safe(keys.city?oldest[keys.city]:'')}.</p>
- <p>• مجموع روزهای رسوب: <b>${fmt(sum)}</b>. این عدد جمع سن رسوب ردیف‌هاست؛ لزوماً تعداد مرسوله‌های یکتا نیست.</p>`;
-}
-function renderRanking(rows){
- const city=group(rows,r=>txt(r[keys.city])||'نامشخص').slice(0,20).map(x=>({...x,kind:'شهر'}));
- const node=group(rows,r=>txt(r[keys.node])||'نامشخص').slice(0,20).map(x=>({...x,kind:'نود'}));
- const all=[...city,...node];
- $('ranking').innerHTML='<thead><tr><th>نوع</th><th>نام</th><th>تعداد ردیف</th><th>مجموع روز</th><th>میانگین روز</th><th>بیشترین روز</th><th>بحرانی</th><th>بالا</th></tr></thead><tbody>'+
- all.map(x=>`<tr><td>${x.kind}</td><td>${safe(x.name)}</td><td>${fmt(x.count)}</td><td>${fmt(x.sum)}</td><td>${fmt(x.sum/x.count)}</td><td>${fmt(x.max)}</td><td>${fmt(x.critical)}</td><td>${fmt(x.high)}</td></tr>`).join('')+'</tbody>';
-}
-function unique(a){return [...new Set(a)]}
-function table(id,rows,cols,withLevel){
- const el=$(id);
- if(!rows.length){el.innerHTML='<tbody><tr><td>داده‌ای برای نمایش وجود ندارد.</td></tr></tbody>';return}
- let useCols=cols.filter(c=>c!=='__row');
- let finalCols=withLevel?['سطح پیگیری',...useCols]:useCols;
- el.innerHTML='<thead><tr>'+finalCols.map(c=>'<th>'+safe(c)+'</th>').join('')+'</tr></thead><tbody>'+
- rows.map(r=>'<tr>'+finalCols.map(c=>{
- if(c==='سطح پیگیری')return '<td>'+badge(level(r.__days))+'</td>';
- if(c===keys.days)return '<td>'+fmt(r.__days)+'</td>';
- return '<td>'+safe(r[c])+'</td>';
- }).join('')+'</tr>').join('')+'</tbody>';
-}
-function exportWorkbook(rows,filename){
- if(!rows.length){alert('داده‌ای برای خروجی وجود ندارد.');return}
- if(!window.XLSX){alert('کتابخانه اکسل بارگذاری نشده است.');return}
- const data=rows.map(r=>{
- const o={};
- headers.forEach(h=>o[h]=r[h]);
- o['سطح پیگیری']=level(r.__days);
- return o;
- });
+function exportRows(filename,rows){
+ if(!window.XLSX){alert('کتابخانه اکسل بارگذاری نشده است. اینترنت را بررسی کن.');return}
+ if(!rows||!rows.length){alert('داده‌ای برای خروجی وجود ندارد.');return}
  const wb=XLSX.utils.book_new();
- XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(data),'اطلاعات رسوب');
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'داده‌ها');
  XLSX.writeFile(wb,filename);
 }
-function exportFiltered(){exportWorkbook(filtered,'Tipax_Residue_Filtered.xlsx')}
-function exportFollowup(){
- const rows=[...filtered].sort((a,b)=>b.__days-a.__days);
- exportWorkbook(rows,'Tipax_Residue_Followup.xlsx');
+function renderHome(){
+ const names=[['رسوب','residue'],['بدهی و وصول','debt'],['شکایات','complaints'],['SLA','sla'],['مالی بارها','finance']];
+ setMetrics('homeMetrics',names.map(([label,key])=>[label,D[key]?fmt(D[key].rows.length):'بارگذاری نشده',D[key]?'ردیف بارگذاری‌شده':'']));
+ $('fileStatus').innerHTML=names.map(([label,key])=>`<div style="padding:6px 0;border-bottom:1px solid #edf0f5"><b>${label}:</b> ${D[key]?fmt(D[key].rows.length)+' ردیف':'بدون فایل'}</div>`).join('');
+ const tasks=[];
+ if(!D.residue)tasks.push('فایل رسوب را بارگذاری کن تا بارهای بحرانی مشخص شوند.');
+ else{const c=D.residue.cols;const n=D.residue.rows.filter(r=>number(c.days?r[c.days]:0)>30).length;tasks.push(n?fmt(n)+' ردیف بیش از ۳۰ روز رسوب دارند؛ فهرست پیگیری را بررسی کن.':'در فایل رسوب، مورد بالاتر از ۳۰ روز شناسایی نشد یا ستون روز رسوب تشخیص داده نشده است.')}
+ if(!D.debt)tasks.push('برای تحلیل بدهی و وصول، فایل نمایندگی‌ها را بارگذاری کن.');
+ if(!D.complaints)tasks.push('برای تحلیل شکایات، فایل شکایات را بارگذاری کن.');
+ if(!D.sla)tasks.push('برای تحلیل SLA، فایل عملکرد زمانی را بارگذاری کن.');
+ if(!D.finance)tasks.push('برای تحلیل COD و پس‌کرایه، فایل مالی بارها را بارگذاری کن.');
+ $('actions').innerHTML='<ul>'+tasks.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul>';
 }
-function exportReport(){
- if(!filtered.length){alert('داده‌ای برای گزارش وجود ندارد.');return}
- const wb=XLSX.utils.book_new();
- const total=filtered.length,sum=filtered.reduce((a,r)=>a+r.__days,0);
- const summary=[
- ['عنوان','مقدار'],
- ['تاریخ تهیه گزارش',new Date().toLocaleString('fa-IR')],
- ['تعداد کل ردیف‌ها',total],
- ['ردیف‌های خوزستان',filtered.filter(r=>r.__province==='خوزستان').length],
- ['ردیف‌های لرستان',filtered.filter(r=>r.__province==='لرستان').length],
- ['مجموع روزهای رسوب',sum],
- ['میانگین روزهای رسوب',total?sum/total:0],
- ['بارهای بحرانی',filtered.filter(r=>level(r.__days)==='بحرانی').length],
- ['بارهای اولویت بالا',filtered.filter(r=>level(r.__days)==='بالا').length]
- ];
- XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(summary),'خلاصه مدیریتی');
- const addGroup=(name,fn)=>{
- const g=group(filtered,fn);
- XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(g.map(x=>({
- [name]:x.name,'تعداد ردیف':x.count,'مجموع روز رسوب':x.sum,
- 'میانگین روز رسوب':x.sum/x.count,'بیشترین روز':x.max,
- 'بار بحرانی':x.critical,'اولویت بالا':x.high
- }))),name);
- };
- addGroup('تحلیل شهرها',r=>txt(r[keys.city])||'نامشخص');
- addGroup('تحلیل نودها',r=>txt(r[keys.node])||'نامشخص');
- const priority=[...filtered].sort((a,b)=>b.__days-a.__days);
- const follow=priority.map(r=>{
- const o={'سطح پیگیری':level(r.__days),'روز رسوب':r.__days};
- headers.forEach(h=>o[h]=r[h]);return o;
+function renderAll(){
+ renderHome();renderResidue();
+ ['debt','complaints','sla','finance'].forEach(k=>genericRender(k,''));
+}
+['pResidue','cResidue','nResidue','levelResidue','qResidue'].forEach(id=>$(id).addEventListener('input',renderResidue));
+['pDebt','qDebt'].forEach(id=>$(id).addEventListener('input',()=>genericRender('debt','')));
+['pComplaints','qComplaints'].forEach(id=>$(id).addEventListener('input',()=>genericRender('complaints','')));
+['pSla','qSla'].forEach(id=>$(id).addEventListener('input',()=>genericRender('sla','')));
+['pFinance','qFinance'].forEach(id=>$(id).addEventListener('input',()=>genericRender('finance','')));
+$('xResidue').onclick=()=>{
+ if(!D.residue){alert('ابتدا فایل رسوب را بارگذاری کن.');return}
+ const c=D.residue.cols;
+ const rows=residueRows().map(r=>({...r,'سطح اولویت':priority(number(c.days?r[c.days]:0))}));
+ exportRows('tipax_residue_daily_followup.xlsx',rows);
+};
+$('xAll').onclick=()=>{
+ if(!window.XLSX){alert('کتابخانه اکسل بارگذاری نشده است.');return}
+ const wb=XLSX.utils.book_new(),summary=[];
+ const names=[['رسوب','residue'],['بدهی','debt'],['شکایات','complaints'],['SLA','sla'],['مالی بارها','finance']];
+ names.forEach(([label,key])=>{
+  const d=D[key];
+  summary.push({بخش:label,وضعیت:d?'بارگذاری شده':'بدون فایل',تعداد_ردیف:d?d.rows.length:0,نام_فایل:d?d.name:''});
+  if(d&&d.rows.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d.rows),label.slice(0,31));
  });
- XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(follow),'فهرست پیگیری');
- XLSX.writeFile(wb,'Tipax_Management_Report.xlsx');
-}
-function resetFilters(){
- ['province','city','node','type','status','priority','minDays','maxDays','search'].forEach(id=>$(id).value='');
- render();
-}
-['province','city','node','type','status','priority'].forEach(id=>$(id).addEventListener('change',render));
-['minDays','maxDays','search'].forEach(id=>$(id).addEventListener('input',render));
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(summary),'خلاصه مدیریت');
+ XLSX.writeFile(wb,'tipax_management_report.xlsx');
+ $('sAll').textContent='گزارش اکسل ساخته شد.';
+};
+renderAll();
 </script>
 </body>
 </html>
