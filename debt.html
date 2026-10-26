@@ -17,6 +17,12 @@ th,td{border:1px solid #ccc;padding:4px 8px;text-align:center;white-space:nowrap
 th{background:#1e6b2e;color:#fff}
 td.n{font-weight:bold;text-align:right;direction:rtl}
 .note{display:block;font-size:11px;color:#06c;font-weight:normal;white-space:normal;max-width:170px}
+#fp{position:absolute;z-index:20;background:#fff;border:1px solid #999;border-radius:8px;padding:8px;width:240px;box-shadow:0 4px 14px #0004;direction:rtl;font-size:13px}
+#fp button{width:100%;margin:2px 0}#fp input[type=text]{width:100%;box-sizing:border-box}
+#fp .lst{max-height:200px;overflow:auto;border:1px solid #ddd;margin:4px 0;padding:2px}
+#fp label{display:block;white-space:nowrap}
+.fb{background:none;border:0;color:#fff;padding:0 3px;margin:0;font-size:12px;cursor:pointer}
+.fb.on{color:#ff0}
 </style>
 </head>
 <body>
@@ -43,7 +49,7 @@ td.n{font-weight:bold;text-align:right;direction:rtl}
   حداقل مانده: <input id="minv" value="100000000" dir="ltr" style="width:120px">
   استان: <select id="prov"><option value="">همه</option><option>خوزستان</option><option>لرستان</option></select>
   حذف نودها (با ویرگول): <input id="excl" value="هاب اهواز (تی هاب)" style="width:230px">
-  <button id="btnShow">نمایش</button>
+  <button id="btnShow">نمایش</button> <button class="sec" id="btnClear">پاک کردن فیلترهای ستون‌ها</button>
   <span style="font-size:12px;color:#666">مقادیر مطابق فایل (ستون «مانده»)</span>
 </div>
 
@@ -57,6 +63,7 @@ td.n{font-weight:bold;text-align:right;direction:rtl}
 
 <div class="card wrap hide" id="matBox"><table><thead id="mh"></thead><tbody id="mb"></tbody></table></div>
 
+<div id="fp" class="hide"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
@@ -165,27 +172,93 @@ async function showMatrix(){
   const dates = [...new Set([...sn.map(s=>s.snapshot_date), ...(nt||[]).map(n=>n.note_date)])].sort();
   const nodes = Object.keys(bal[last]).filter(n=>bal[last][n]>=minv && (!prov||provOf[n]===prov)).sort((a,b)=>ranks[last][a]-ranks[last][b]);
   $("nodes").textContent=""; nodes.forEach(n=>{ const o=document.createElement("option"); o.value=n; $("nodes").appendChild(o); });
-  const colMax = {}; dates.forEach(d=>{ colMax[d]=Math.max(1,...nodes.map(n=>(bal[d]&&bal[d][n])||0)); });
+  M = {dates, nodes, bal, ranks, prev, last, notes, colMax:{}};
+  dates.forEach(d=>{ M.colMax[d]=Math.max(1,...nodes.map(n=>(bal[d]&&bal[d][n])||0)); });
+  render();
+}
+
+// ---FILTER-START
+let M=null, flt={}, srt={c:1,d:1};
+const colVal=(n,c)=>{
+  if(c===0) return M.prev && M.ranks[M.prev][n] ? M.ranks[M.prev][n] : null;
+  if(c===1) return M.ranks[M.last][n];
+  if(c===2) return n;
+  const d=M.dates[c-3]; return M.bal[d] && M.bal[d][n]!==undefined ? M.bal[d][n] : null;
+};
+const passes=n=>Object.keys(flt).every(k=>{
+  const c=+k, f=flt[k], v=colVal(n,c);
+  if(c===2) return !f.set || f.set.has(n);
+  if(v===null) return f.min==null && f.max==null;
+  return (f.min==null||v>=f.min) && (f.max==null||v<=f.max);
+});
+const cmpRows=(a,b)=>{
+  const x=colVal(a,srt.c), y=colVal(b,srt.c);
+  if(x===null&&y===null) return 0; if(x===null) return 1; if(y===null) return -1;
+  return (typeof x==="string" ? x.localeCompare(y,"fa") : x-y)*srt.d;
+};
+const toNum=s=>{ const t=String(s).replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[^\d.-]/g,""); return t===""||t==="-" ? null : Number(t); };
+// ---FILTER-END
+
+function closeFp(){ $("fp").classList.add("hide"); }
+document.addEventListener("click",e=>{ if(!$("fp").contains(e.target) && !e.target.classList.contains("fb")) closeFp(); });
+
+function openFp(c,th){
+  const fp=$("fp"); fp.textContent=""; fp.classList.remove("hide");
+  const r=th.getBoundingClientRect();
+  fp.style.top=(window.scrollY+r.bottom)+"px";
+  fp.style.left=Math.max(4,Math.min(r.left+window.scrollX,document.documentElement.clientWidth-250))+"px";
+  const btn=(t,fn,cls)=>{ const x=document.createElement("button"); if(cls) x.className=cls; x.textContent=t; x.onclick=fn; fp.appendChild(x); return x; };
+  btn("مرتب‌سازی صعودی ▲",()=>{ srt={c,d:1}; closeFp(); render(); },"sec");
+  btn("مرتب‌سازی نزولی ▼",()=>{ srt={c,d:-1}; closeFp(); render(); },"sec");
+  const f=flt[c]||{}; let apply;
+  if(c===2){
+    const q=document.createElement("input"); q.type="text"; q.placeholder="جستجو..."; fp.appendChild(q);
+    const lst=document.createElement("div"); lst.className="lst"; fp.appendChild(lst);
+    const sel=new Set(f.set||M.nodes), items=[];
+    const mk=(txt,checked,onchg)=>{ const l=document.createElement("label"), i=document.createElement("input"); i.type="checkbox"; i.checked=checked; i.onchange=()=>onchg(i.checked); l.appendChild(i); l.appendChild(document.createTextNode(" "+txt)); lst.appendChild(l); return l; };
+    const all=mk("(انتخاب همه نتایج جستجو)",sel.size===M.nodes.length,ck=>{ items.forEach(it=>{ if(it.l.style.display!=="none"){ it.i.checked=ck; ck?sel.add(it.n):sel.delete(it.n); } }); });
+    M.nodes.forEach(n=>{ const l=mk(n,sel.has(n),ck=>{ ck?sel.add(n):sel.delete(n); }); items.push({n,l,i:l.firstChild}); });
+    q.oninput=()=>{ items.forEach(it=>{ it.l.style.display=it.n.includes(q.value.trim())?"":"none"; }); };
+    apply=()=>{ if(sel.size===M.nodes.length) delete flt[c]; else flt[c]={set:sel}; };
+  } else {
+    const mn=document.createElement("input"), mx=document.createElement("input");
+    mn.type=mx.type="text"; mn.placeholder="از (حداقل)"; mx.placeholder="تا (حداکثر)";
+    if(f.min!=null) mn.value=f.min; if(f.max!=null) mx.value=f.max;
+    fp.appendChild(mn); fp.appendChild(mx);
+    apply=()=>{ const a=toNum(mn.value), b=toNum(mx.value); if(a===null&&b===null) delete flt[c]; else flt[c]={min:a,max:b}; };
+  }
+  btn("اعمال",()=>{ apply(); closeFp(); render(); });
+  btn("پاک کردن فیلتر این ستون",()=>{ delete flt[c]; closeFp(); render(); },"sec");
+}
+
+function render(){
+  if(!M) return;
+  const rowsN=M.nodes.filter(passes).sort(cmpRows);
   const mh=$("mh"); mh.textContent="";
   const hr=document.createElement("tr");
-  ["رتبه قبلی","رتبه فعلی","نود",...dates.map(toJ)].forEach(t=>{ const th=document.createElement("th"); th.textContent=t; hr.appendChild(th); });
+  ["رتبه قبلی","رتبه فعلی","نود",...M.dates.map(toJ)].forEach((t,c)=>{
+    const th=document.createElement("th"); th.appendChild(document.createTextNode(t+" "));
+    const b=document.createElement("button"); b.className="fb"+(flt[c]||srt.c===c?" on":""); b.textContent=srt.c===c?(srt.d===1?"▲":"▼"):"▾";
+    b.onclick=()=>openFp(c,th); th.appendChild(b); hr.appendChild(th);
+  });
   mh.appendChild(hr);
   const mb=$("mb"); mb.textContent="";
-  nodes.forEach(n=>{
+  rowsN.forEach(n=>{
     const tr=document.createElement("tr");
     const add=(t,cls)=>{ const td=document.createElement("td"); td.textContent=t; if(cls) td.className=cls; tr.appendChild(td); return td; };
-    add(prev && ranks[prev][n] ? ranks[prev][n] : "-"); add(ranks[last][n]); add(n,"n");
-    dates.forEach(d=>{
-      const v = bal[d] ? bal[d][n] : undefined, td = add(v===undefined ? "" : fmt(v));
-      if(v!==undefined){ const t=Math.max(0,Math.min(1,v/colMax[d])); td.style.background=`hsl(${60*(1-t)},85%,${78-8*t}%)`; }
-      const note = notes[n+"|"+d];
+    add(colVal(n,0)===null?"-":colVal(n,0)); add(colVal(n,1)); add(n,"n");
+    M.dates.forEach(d=>{
+      const v=M.bal[d]?M.bal[d][n]:undefined, td=add(v===undefined?"":fmt(v));
+      if(v!==undefined){ const t=Math.max(0,Math.min(1,v/M.colMax[d])); td.style.background=`hsl(${60*(1-t)},85%,${78-8*t}%)`; }
+      const note=M.notes[n+"|"+d];
       if(note){ const s=document.createElement("span"); s.className="note"; s.textContent=note; td.appendChild(s); }
     });
     mb.appendChild(tr);
   });
-  say(`${nodes.length} نود نمایش داده شد.`);
+  say(`${rowsN.length} از ${M.nodes.length} نود نمایش داده شد.`);
 }
-$("btnShow").onclick = showMatrix;
+$("btnShow").onclick = ()=>{ flt={}; srt={c:1,d:1}; showMatrix(); };
+$("btnClear").onclick = ()=>{ flt={}; srt={c:1,d:1}; render(); };
 refresh();
 </script>
 </body>
